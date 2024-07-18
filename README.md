@@ -1,4 +1,4 @@
-# network-decentralization
+# Network-decentralization
 # EDI_Project_Information : 
 This document contain different informations about the database and all the work and study did on the Bitcoin P2P Network. 
 # Get_address_between_2_nodes.py : 
