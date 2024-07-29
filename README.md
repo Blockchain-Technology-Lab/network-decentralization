@@ -22,3 +22,11 @@ This script will browse the "Full_node" table from the database and then for eac
 This script will use the "Bitcoin-cli getnodeaddress" to retrieve all the node known by our Full-node and then populate the "Full_nodes" table of the database.
 # Update_Check_Status_Node.py : 
 This script will send a ping to each node on the database to see the status of the nodes and then store the result in the database into the "node_status_history" table.
+# Get_address_Export.py 
+This script will send “Get address” to a specific node and collect the results of the “Addr” message in a .txt file. We need to execute this script as much as possible to collect the more data possible. we can do that in ubuntu with the bash command: 
+for ((i=1; i<=5; i++)); do python3 Get_address_Export.py; echo "Finished iteration $i"; if [ $i -lt 10 ]; then sleep 20; fi; done
+(This will execute automatically the script X times  In this case 5) 
+# Compare_Convergence.py 
+This script will compare all the .txt files returned from the “Get_address_Export” script to evaluate the convergence and the number of known IP addresses of the node.
+
+
