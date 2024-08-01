@@ -29,7 +29,7 @@ def compare_accumulative(file_list):
             known_count = len(cumulative_addresses.intersection(file_addresses))
             known_percentage = round((known_count / len(file_addresses)) * 100, 2)
         else:
-            known_percentage = 100.0
+            known_percentage = 0
         #Print the percentage of known addresses 
         print(f"Comparison with cumulative up to {file}: {known_percentage}% addresses known")
         # Print the total number of unique addresses in the cumulative set
