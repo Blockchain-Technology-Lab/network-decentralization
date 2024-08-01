@@ -28,5 +28,6 @@ for ((i=1; i<=5; i++)); do python3 Get_address_Export.py; echo "Finished iterati
 (This will execute automatically the script X times --> In this case 5) 
 # Compare_Convergence.py 
 This script will compare all the .txt files returned from the “Get_address_Export” script to evaluate the convergence and the number of known IP addresses of the node.
-
+# Network_Geo_Decentralization_Graph.py
+This script will generate a pie graph representing the number of nodes per country using the data from the local PostgreSQL database.
 
