@@ -111,7 +111,8 @@ def parse_nodefile(filename, nodelist, reachable_only=False):
                         if entry['status']:
                             node_ip = str(filename).split('/')[-1]
                             node_port = entry['port']
-                            nodelist.append((node_ip, node_port))
+                            node_version = entry['version']
+                            nodelist.append((node_ip, node_port, node_version))
                             break
                     else:
                         node_ip = str(filename).split('/')[-1]

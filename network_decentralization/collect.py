@@ -75,7 +75,9 @@ def crawl_network(ledger):
 
     sema = multiprocessing.Semaphore(concurrency)
     jobs = []
-    for node_ip, node_port in known_nodes:
+    for node in known_nodes:
+        node_ip = node[0]
+        node_port = node[1]
         logging.info(f'Processed {ledger} nodes: {100*len(parsed_nodes)/len(known_nodes):.2f}%')
         if (node_ip, node_port) not in parsed_nodes:
             sema.acquire()  # Loop stops here while the active processes are as many as the semaphore's limit
@@ -102,7 +104,8 @@ def collect_geodata(ledger):
 
     nodes = hlp.get_reachable_nodes(ledger)
     logging.info(f'{ledger} - Got {len(nodes)} nodes')
-    for node_ip, _ in nodes:
+    for node in nodes:
+        node_ip = node[0]
         logging.info(f'{ledger} - Collecting geodata for {node_ip}')
         if node_ip not in geodata.keys() and not node_ip.endswith('onion'):
             geodata[node_ip] = hlp.get_ip_geodata(node_ip)

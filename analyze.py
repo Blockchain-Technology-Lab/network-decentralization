@@ -1,4 +1,6 @@
 import json
+import re
+import csv
 import pathlib
 import network_decentralization.helper as hlp
 from collections import defaultdict
@@ -6,11 +8,11 @@ import logging
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
-LEDGERS = ['litecoin', 'dogecoin', 'zcash', 'bitcoin']
-# LEDGERS = ['bitcoin']
+LEDGERS = ['bitcoin', 'dogecoin', 'litecoin', 'zcash']
 
 
 def ip_type(reachable=False):
+    output_data = [['ledger', 'ipv4', 'ipv6', 'onion']]
     for ledger in LEDGERS:
         ipv4, ipv6, onion = set(), set(), set()
         if reachable:
@@ -27,6 +29,10 @@ def ip_type(reachable=False):
                 ipv4.add(node_ip)
 
         logging.info(f'{ledger} ipv4: {len(ipv4)} ipv6: {len(ipv6)} onion: {len(onion)}')
+        output_data.append([ledger, len(ipv4), len(ipv6), len(onion)])
+    with open('output/ip_type.csv', 'w') as f:
+        csv_writer = csv.writer(f)
+        csv_writer.writerows(output_data)
 
 
 def convergence():
@@ -63,35 +69,89 @@ def convergence():
             logging.info(f'\t {key} {len(val)}')
 
 
-def geography():
+def get_geodata(ledger, geography=True):
     output_dir = hlp.get_output_directory() / 'geodata'
-    for ledger in LEDGERS:
-        countries = defaultdict(list)
-        with open(output_dir / f'{ledger}.json') as f:
-            geodata = json.load(f)
-            for ip_addr, ip_info in geodata.items():
+    countries = defaultdict(list)
+
+    with open(output_dir / f'{ledger}.json') as f:
+        geodata = json.load(f)
+
+    nodelist = hlp.get_reachable_nodes(ledger)
+    for node in nodelist:
+        ip_addr = node[0]
+        if ip_addr in geodata:
+            ip_info = geodata[ip_addr]
+            if 'error' in ip_info and ip_info['error']:
+                continue
+            if geography:
                 countries[ip_info['country_name']].append(ip_addr)
-        logging.info(ledger)
-        for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
-            logging.info(f'\t {key} {len(val)}')
+            else:
+                countries[f"{ip_info['asn']} ({ip_info['org']})"].append(ip_addr)
+        elif ip_addr.endswith('onion'):
+            countries['Tor'].append(ip_addr)
+        else:
+            countries['Unknown'].append(ip_addr)
+
+    return countries
+
+
+def geography():
+    for ledger in LEDGERS:
+        countries = get_geodata(ledger)
+        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
+        with open(f'./output/geography_{ledger}.csv', 'w') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['country', 'node_count'])
+            for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
+                csv_writer.writerow([key, len(val)])
 
 
 def network():
-    output_dir = hlp.get_output_directory() / 'geodata'
     for ledger in LEDGERS:
-        countries = defaultdict(list)
-        with open(output_dir / f'{ledger}.json') as f:
-            geodata = json.load(f)
-            for ip_addr, ip_info in geodata.items():
-                countries[f"{ip_info['asn']} ({ip_info['org']})"].append(ip_addr)
-        logging.info(ledger)
-        for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
-            logging.info(f'\t {key} {len(val)}')
+        countries = get_geodata(ledger, False)
+        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
+        with open(f'./output/asn_{ledger}.csv', 'w') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['asn', 'node_count'])
+            for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
+                csv_writer.writerow([key, len(val)])
 
 
-logging.info('start')
+def version():
+    for ledger in LEDGERS:
+        logging.info(f'Analyzing {ledger} versions')
+        nodelist = hlp.get_reachable_nodes(ledger)
+        versions = defaultdict(int)
+        for node in nodelist:
+            version = node[2]
+            if ledger == 'bitcoin':
+                expr = re.search(r'Satoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                if expr:
+                    version = expr.group(0)
+            elif ledger == 'litecoin':
+                expr = re.search(r'LitecoinCore:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                if expr:
+                    version = expr.group(0)
+            elif ledger == 'zcash':
+                expr = re.search(r'MagicBean:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                if expr:
+                    version = expr.group(0)
+            elif ledger == 'dogecoin':
+                expr = re.search(r'Shibetoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                if expr:
+                    version = expr.group(0)
+            versions[version] += 1
+        with open(f'./output/version_{ledger}.csv', 'w') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['version', 'node_count'])
+            for key, val in sorted(versions.items(), key=lambda x: x[1], reverse=True):
+                csv_writer.writerow([key, val])
+
+
+logging.info('Start')
 
 # convergence()
 # geography()
 # network()
-ip_type(False)
+# ip_type(reachable=True)
+version()
