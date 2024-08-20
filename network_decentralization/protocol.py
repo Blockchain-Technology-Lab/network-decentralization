@@ -1124,7 +1124,7 @@ def main():
                  '(%(funcName)s) %(message)s')
     logging.basicConfig(level='DEBUG', format=logformat)
 
-    to_addr = ('172.232.128.247', PORT)
+    to_addr = ('127.0.0.1', PORT)
 
     version_msg = {}
     addr_msgs = []
@@ -1141,12 +1141,12 @@ def main():
         logging.info('getaddr')
         addr_msgs = conn.getaddr()
 
-        # logging.info('getdata')
-        # block_msgs = conn.getdata([(
-        #     2,
-        #     b'00000000000000000003d921bd82c8ab'
-        #     b'dc5665fd2460035b7a77005c3fd91276'
-        # )])
+        logging.info('getdata')
+        block_msgs = conn.getdata([(
+            2,
+            b'00000000000000000003d921bd82c8ab'
+            b'dc5665fd2460035b7a77005c3fd91276'
+        )])
 
         logging.info('ping')
         conn.ping()
@@ -1162,8 +1162,7 @@ def main():
 
     if addr_msgs:
         logging.info(
-            f"[addr_msgs] addr_list[0]={addr_msgs[0]['addr_list'][0]}"
-        )
+            f"[addr_msgs] addr_list[0]={addr_msgs[0]['addr_list'][0]}")
 
     if block_msgs:
         logging.info(
