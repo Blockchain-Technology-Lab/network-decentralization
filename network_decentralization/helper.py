@@ -134,7 +134,11 @@ def get_all_nodes(ledger):
     for fname in pathlib.Path(output_dir).iterdir():
         p = pool.apply_async(parse_nodefile, args=(fname, nodes))
         jobs.append(p)
-    [p.wait() for p in jobs]
+    ctr = 0
+    for p in jobs:
+        p.wait()
+        ctr += 1
+        print(f'{ledger} - parsed {ctr:,}/{len(jobs):,} files ({100*ctr/len(jobs):.2f}%)', end='\r')
     return set(nodes)
 
 
@@ -150,7 +154,11 @@ def get_reachable_nodes(ledger):
     for fname in pathlib.Path(output_dir).iterdir():
         p = pool.apply_async(parse_nodefile, args=(fname, nodes, True))
         jobs.append(p)
-    [p.wait() for p in jobs]
+    ctr = 0
+    for p in jobs:
+        p.wait()
+        ctr += 1
+        print(f'{ledger} - parsed {ctr:,}/{len(jobs):,} files ({100*ctr/len(jobs):.2f}%)', end='\r')
     return set(nodes)
 
 
