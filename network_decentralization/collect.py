@@ -11,7 +11,7 @@ import logging
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
 
-def get_node_addresses(sema, ledger, node_ip, node_port):
+def get_node_addresses(ledger, node_ip, node_port):
     network_types = {
         1: 'ipv4',
         2: 'ipv6',
@@ -41,24 +41,22 @@ def get_node_addresses(sema, ledger, node_ip, node_port):
                 ip_type = network_types[network_id]
                 addresses.add((msg[ip_type], msg['port'], msg['services'], ip_type))
 
-        logging.info(f'{node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
+        logging.info(f'{ledger} {node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
+    except (network_proto.ProtocolError, network_proto.ConnectionError, socket.error) as err:
+        logging.error(f'{ledger} {node_ip}:{node_port} - {err}')
     except network_proto.UnsupportedNetworkIdError as err:
         version = 'unknown'
-        logging.error(f'{node_ip}:{node_port} - {err}')
-    except (network_proto.ProtocolError, ConnectionError, socket.error) as err:
-        logging.error(f'{node_ip}:{node_port} - {err}')
+        logging.error(f'{ledger} {node_ip}:{node_port} - {err}')
     except network_proto.RemoteHostClosedConnection:
-        logging.error(f'{node_ip}:{node_port} - Connection closed.')
+        logging.error(f'{ledger} {node_ip}:{node_port} - Connection closed.')
     except network_proto.ProxyRequired:
-        logging.error(f'{node_ip}:{node_port} - Tor node, ignoring...')
+        logging.error(f'{ledger} {node_ip}:{node_port} - Tor node, ignoring...')
     except KeyError:
-        logging.error(f'{node_ip}:{node_port} - Could not connect.')
+        logging.error(f'{ledger} {node_ip}:{node_port} - Could not connect.')
     finally:
         conn.close()
 
     hlp.update_node(ledger, node_ip, node_port, version, addresses)
-
-    sema.release()  # Release the semaphore s.t. the loop in the calling function can continue
 
 
 def crawl_network(ledger):
@@ -73,24 +71,17 @@ def crawl_network(ledger):
 
     parsed_nodes = set()
 
-    sema = multiprocessing.Semaphore(concurrency)
+    pool = multiprocessing.Pool(processes=concurrency)
     jobs = []
     for node in known_nodes:
         node_ip = node[0]
         node_port = node[1]
-        logging.info(f'Processed {ledger} nodes: {100*len(parsed_nodes)/len(known_nodes):.2f}%')
         if (node_ip, node_port) not in parsed_nodes:
-            sema.acquire()  # Loop stops here while the active processes are as many as the semaphore's limit
-            p = multiprocessing.Process(target=get_node_addresses, args=(sema, ledger, node_ip, node_port))
+            p = pool.apply_async(get_node_addresses, args=(ledger, node_ip, node_port))
             jobs.append(p)
-            p.start()
+
             parsed_nodes.add((node_ip, node_port))
-            if len(jobs) >= concurrency:
-                for proc in jobs:
-                    proc.join()
-                jobs = []
-    for proc in jobs:
-        proc.join()
+    [p.wait() for p in jobs]
 
 
 def collect_geodata(ledger):
@@ -125,7 +116,7 @@ def get_os_info(node, osdata, ledger, all_nodes):
             logging.info(f'{ledger} - Collected {node_ip} ({computed_percentage:.2f}%)')
         except Exception as e:
             osdata[node_ip] = None
-            logging.info(f'get_os_info error: {e}')
+            logging.info(f'{ledger} get_os_info error: {e}')
     else:
         osdata[node_ip] = None
         logging.info(f'{ledger} - {node_ip} already exists ({computed_percentage:.2f}%)')
