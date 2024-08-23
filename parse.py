@@ -11,15 +11,12 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 LEDGERS = ['bitcoin', 'dogecoin', 'litecoin', 'zcash']
 
 
-def ip_type(reachable=False):
+def ip_type(reachable_nodes):
     output_data = [['ledger', 'ipv4', 'ipv6', 'onion']]
     for ledger in LEDGERS:
+        logging.info(f'Analyzing {ledger} ip types')
         ipv4, ipv6, onion = set(), set(), set()
-        if reachable:
-            nodelist = hlp.get_reachable_nodes(ledger)
-        else:
-            nodelist = hlp.get_all_nodes(ledger)
-        for node in nodelist:
+        for node in reachable_nodes[ledger]:
             node_ip = node[0]
             if ':' in node_ip:
                 ipv6.add(node_ip)
@@ -39,6 +36,7 @@ def convergence():
     CONVERGENCE_PARAM = 0.1
 
     for ledger in LEDGERS:
+        logging.info(f'Analyzing {ledger} convergence')
         output_dir = hlp.get_output_directory(ledger)
 
         convergence = defaultdict(list)
@@ -57,6 +55,8 @@ def convergence():
                                 if addr[0] not in received_addrs:
                                     new_addrs.add(addr[0])
                                     received_addrs.add(addr[0])
+                            # if node_ip == 'ofcpvq2qmvn3itcx4ljqpghxendxqlk7b52mpv7ughbkmr5773nmrnad.onion':
+                            #     print(entry['date'], len(entry['addresses']), len(new_addrs), len(received_addrs))
                             if 100*len(new_addrs) / len(entry['addresses']) < CONVERGENCE_PARAM:
                                 convergence[entry_idx].append(node_ip)
                                 converged = True
@@ -69,15 +69,14 @@ def convergence():
             logging.info(f'\t {key} {len(val)}')
 
 
-def get_geodata(ledger, geography=True):
+def get_geodata(ledger, reachable_nodes, geography=True):
     output_dir = hlp.get_output_directory() / 'geodata'
     countries = defaultdict(list)
 
     with open(output_dir / f'{ledger}.json') as f:
         geodata = json.load(f)
 
-    nodelist = hlp.get_reachable_nodes(ledger)
-    for node in nodelist:
+    for node in reachable_nodes[ledger]:
         ip_addr = node[0]
         if ip_addr in geodata:
             ip_info = geodata[ip_addr]
@@ -95,9 +94,10 @@ def get_geodata(ledger, geography=True):
     return countries
 
 
-def geography():
+def geography(reachable_nodes):
     for ledger in LEDGERS:
-        countries = get_geodata(ledger)
+        logging.info(f'Analyzing {ledger} geography')
+        countries = get_geodata(ledger, reachable_nodes)
         logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
         with open(f'./output/geography_{ledger}.csv', 'w') as f:
             csv_writer = csv.writer(f)
@@ -106,9 +106,10 @@ def geography():
                 csv_writer.writerow([key, len(val)])
 
 
-def network():
+def network(reachable_nodes):
     for ledger in LEDGERS:
-        countries = get_geodata(ledger, False)
+        logging.info(f'Analyzing {ledger} network')
+        countries = get_geodata(ledger, reachable_nodes, False)
         logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
         with open(f'./output/asn_{ledger}.csv', 'w') as f:
             csv_writer = csv.writer(f)
@@ -117,12 +118,11 @@ def network():
                 csv_writer.writerow([key, len(val)])
 
 
-def version():
+def version(reachable_nodes):
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} versions')
-        nodelist = hlp.get_reachable_nodes(ledger)
         versions = defaultdict(int)
-        for node in nodelist:
+        for node in reachable_nodes[ledger]:
             version = node[2]
             if ledger == 'bitcoin':
                 expr = re.search(r'Satoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
@@ -148,10 +148,15 @@ def version():
                 csv_writer.writerow([key, val])
 
 
-logging.info('Start')
+logging.info('Start parsing')
+
+reachable_nodes = {}
+for ledger in LEDGERS:
+    logging.info(f'Getting {ledger} reachable nodes')
+    reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
 
 # convergence()
-# geography()
-# network()
-# ip_type(reachable=True)
-version()
+geography(reachable_nodes)
+network(reachable_nodes)
+ip_type(reachable_nodes)
+version(reachable_nodes)
