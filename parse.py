@@ -40,12 +40,14 @@ def convergence():
         output_dir = hlp.get_output_directory(ledger)
 
         convergence = defaultdict(list)
-        for filename in pathlib.Path(output_dir).iterdir():
+        filenames = list(pathlib.Path(output_dir).iterdir())
+        for idx, filename in enumerate(filenames):
+            print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
             node_ip = str(filename).split('/')[-1]
 
             received_addrs = set()
             converged = False
-            if filename.is_file():
+            if filename.is_file() and not node_ip.endswith('.swp'):
                 with open(filename) as f:
                     entries = json.load(f)
                     for entry_idx, entry in enumerate(entries):
