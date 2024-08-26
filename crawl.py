@@ -1,4 +1,5 @@
 from network_decentralization.collect import crawl_network
+from random import randint, shuffle
 import network_decentralization.helper as hlp
 import time
 import logging
@@ -8,6 +9,8 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 def main():
     ledgers = hlp.get_ledgers()
+    shuffle(ledgers)
+
     while True:
         timings = {}
         for ledger in ledgers:
@@ -17,7 +20,7 @@ def main():
             timings[ledger] = total_time
 
         print(7*'----------------\n')
-        for ledger in hlp.get_ledgers():
+        for ledger in ledgers:
             total_time = timings[ledger]
             days = int(total_time / 86400)
             hours = int((total_time - days*86400) / 3600)
@@ -26,7 +29,9 @@ def main():
             print(f'\t{ledger} total time: {hours:02} hours, {mins:02} mins, {secs:02} secs')
         print(7*'----------------\n')
 
-        time.sleep(max(0, 24*60*60 - sum(timings.values())))
+        sleep_duration = randint(0, max(0, 24*60*60 - sum(timings.values())))
+        print(f'Sleeping for {sleep_duration} seconds')
+        time.sleep()
 
 
 if __name__ == '__main__':
