@@ -31,15 +31,16 @@ def get_node_addresses(ledger, node_ip, node_port):
             conn = network_proto.Connection((node_ip, node_port))
         conn.open()
         version_msg = conn.handshake()
+        version = version_msg['user_agent']
+
         addr_msgs = conn.getaddr()
         conn.ping()
 
-        version = version_msg['user_agent']
         if addr_msgs:
             for msg in addr_msgs[0]['addr_list']:
                 network_id = msg['network_id']
                 ip_type = network_types[network_id]
-                addresses.add((msg[ip_type], msg['port'], msg['services'], ip_type))
+                addresses.add((msg[ip_type], msg['port'], msg['services'], msg['timestamp'], ip_type))
 
         logging.info(f'{ledger} {node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
     except (network_proto.ProtocolError, network_proto.ConnectionError, socket.error) as err:
