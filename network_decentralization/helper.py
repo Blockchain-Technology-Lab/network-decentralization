@@ -95,12 +95,17 @@ def update_node(ledger, ip, port, version, addresses):
         json.dump(entries, f, indent=4)
 
 
-def parse_nodefile(filename, nodelist, reachable_only=False):
+def get_past_week():
     day = datetime.date.today()
     past_week = set()
     while len(past_week) < 7:
         past_week.add(day.strftime('%d/%m/%Y'))
         day -= datetime.timedelta(1)
+    return past_week
+
+
+def parse_nodefile(filename, nodelist, reachable_only=False):
+    past_week = get_past_week()
 
     if filename.is_file():
         with open(filename) as f:
