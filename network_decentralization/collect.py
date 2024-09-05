@@ -67,7 +67,7 @@ def crawl_network(ledger):
     concurrency = hlp.get_concurrency()
 
     logging.info(f'Collecting {ledger} known nodes')
-    known_nodes = hlp.get_all_nodes(ledger).union(hlp.get_seed_nodes(ledger))
+    known_nodes = hlp.get_known_nodes(ledger)
     logging.info(f'{len(known_nodes)} {ledger} nodes found')
 
     parsed_nodes = set()
