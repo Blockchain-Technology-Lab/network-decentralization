@@ -113,20 +113,16 @@ def parse_nodefile(filename, nodelist, reachable_only=False):
         with open(filename) as f:
             entries = json.load(f)
             for entry in entries:
-                if entry['date'].split()[0] in past_week:
+                if entry['date'].split()[0] in past_week and entry['status']:
+                    node_ip = str(filename).split('/')[-1]
+                    node_port = entry['port']
+                    node_version = entry['version']
+                    nodelist.append((node_ip, node_port, node_version))
                     if reachable_only:
-                        if entry['status']:
-                            node_ip = str(filename).split('/')[-1]
-                            node_port = entry['port']
-                            node_version = entry['version']
-                            nodelist.append((node_ip, node_port, node_version))
-                            break
+                        break
                     else:
-                        node_ip = str(filename).split('/')[-1]
-                        node_port = entry['port']
-                        nodelist.append((node_ip, node_port))
                         for addr in entry['addresses']:
-                            nodelist.append((addr[0], addr[1]))
+                            nodelist.append((addr[0], addr[1], node_version))
 
 
 def get_all_nodes(ledger):
