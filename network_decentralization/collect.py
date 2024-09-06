@@ -44,16 +44,16 @@ def get_node_addresses(ledger, node_ip, node_port):
 
         logging.info(f'{ledger} {node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
     except (network_proto.ProtocolError, network_proto.ConnectionError, socket.error) as err:
-        logging.error(f'{ledger} {node_ip}:{node_port} - {err}')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - {err}')
     except network_proto.UnsupportedNetworkIdError as err:
         version = 'unknown'
-        logging.error(f'{ledger} {node_ip}:{node_port} - {err}')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - {err}')
     except network_proto.RemoteHostClosedConnection:
-        logging.error(f'{ledger} {node_ip}:{node_port} - Connection closed.')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - Connection closed.')
     except network_proto.ProxyRequired:
-        logging.error(f'{ledger} {node_ip}:{node_port} - Tor node, ignoring...')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - Tor node, ignoring...')
     except KeyError:
-        logging.error(f'{ledger} {node_ip}:{node_port} - Could not connect.')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - Could not connect.')
     finally:
         conn.close()
 
@@ -98,14 +98,13 @@ def collect_geodata(ledger):
     logging.info(f'{ledger} - Got {len(nodes)} nodes')
     for node in nodes:
         node_ip = node[0]
-        logging.info(f'{ledger} - Collecting geodata for {node_ip}')
         if node_ip not in geodata.keys() and not node_ip.endswith('onion'):
             geodata[node_ip] = hlp.get_ip_geodata(node_ip)
-
-            time.sleep(5)  # Sleep to avoid getting rate limited
-
             with open(filename, 'w') as f:
                 json.dump(geodata, f, indent=4)
+
+            logging.info(f'{ledger} - Collected geodata for {node_ip}')
+            time.sleep(5)  # Sleep to avoid getting rate limited
 
 
 def get_os_info(node, osdata, ledger, all_nodes):
