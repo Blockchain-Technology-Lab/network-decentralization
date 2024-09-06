@@ -78,6 +78,8 @@ def update_node(ledger, ip, port, version, addresses):
 
     if version is None:
         status = False
+        if entries == []:
+            return  # If the node has never been reachable then don't record now
         version = ''
         addresses = []
     else:
@@ -203,25 +205,7 @@ def get_seed_nodes(ledger):
 
 
 def get_known_nodes(ledger):
-    seed_nodes = get_seed_nodes(ledger)
-
-    output_dir = get_output_directory(ledger)
-
-    known_nodes = set()
-    reachable_nodes = get_reachable_nodes(ledger)
-    for node in reachable_nodes:
-        node_ip = node[0]
-        filename = output_dir / node_ip
-        with open(filename) as f:
-            entries = json.load(f)
-        for entry in entries:
-            if entry['date'].split()[0] in get_past_week():
-                node_port = entry['port']
-                known_nodes.add((node_ip, node_port))
-                for addr in entry['addresses']:
-                    known_nodes.add((addr[0], addr[1]))
-
-    return known_nodes.union(seed_nodes)
+    return get_all_nodes(ledger).union(get_seed_nodes(ledger))
 
 
 def get_ip_geodata(ip_addr):
