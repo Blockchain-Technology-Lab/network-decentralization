@@ -4,3 +4,5 @@ PyYAML==6.0.1
 dnspython==2.6.1
 PySocks==1.7.1
 python3-nmap==1.6.0
+networkx==3.3
+scipy==1.14.1
