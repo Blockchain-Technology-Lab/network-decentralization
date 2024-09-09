@@ -8,7 +8,42 @@ import logging
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
-LEDGERS = ['bitcoin', 'dogecoin', 'litecoin', 'zcash']
+
+def network_edges():
+    network_edge_dir = hlp.get_output_directory() / 'network_edges'
+    if not network_edge_dir.is_dir():
+        network_edge_dir.mkdir()
+
+    past_week = hlp.get_past_week()
+
+    for ledger in LEDGERS:
+        reachable_nodes = set()
+        output_data = [['source', 'dest']]
+        edges = set()
+        logging.info(f'Parsing {ledger} graph edges')
+        output_dir = hlp.get_output_directory(ledger)
+        filenames = list(pathlib.Path(output_dir).iterdir())
+        for idx, filename in enumerate(filenames):
+            print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
+            node_ip = str(filename).split('/')[-1]
+            try:
+                with open(filename) as f:
+                    entries = json.load(f)
+            except json.decoder.JSONDecodeError:
+                continue
+            for entry in entries:
+                if entry['date'].split()[0] in past_week:
+                    if entry['status']:
+                        reachable_nodes.add(node_ip)
+                    for addr in entry['addresses']:
+                        edges.add((node_ip, addr[0]))
+        for source, dest in edges:
+            if dest in reachable_nodes:
+                output_data.append([source, dest])
+
+        with open(hlp.get_output_directory() / 'network_edges' / f'{ledger}.csv', 'w') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerows(output_data)
 
 
 def ip_type(reachable_nodes):
@@ -32,8 +67,48 @@ def ip_type(reachable_nodes):
         csv_writer.writerows(output_data)
 
 
+def response_length():
+    output = {}
+
+    for ledger in LEDGERS:
+        logging.info(f'Analyzing {ledger} response lengths')
+        output_dir = hlp.get_output_directory(ledger)
+
+        response_length = defaultdict(list)
+        filenames = list(pathlib.Path(output_dir).iterdir())
+        for idx, filename in enumerate(filenames):
+            print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
+            node_ip = str(filename).split('/')[-1]
+
+            received_addrs = []
+            if filename.is_file() and not node_ip.endswith('.swp'):
+                try:
+                    with open(filename) as f:
+                        entries = json.load(f)
+                except json.decoder.JSONDecodeError:
+                    continue
+                for entry_idx, entry in enumerate(entries):
+                    if entry['addresses']:
+                        received_addrs.append(len(entry['addresses']))
+
+            if received_addrs:
+                avg_responses = sum(received_addrs) / len(received_addrs)
+                response_length[int(avg_responses)].append(node_ip)
+
+        logging.info(ledger)
+        output[ledger] = []
+        for key, val in sorted(response_length.items(), key=lambda x: len(x[1]), reverse=True):
+            output[ledger].append([key, len(val)])
+            # logging.info(f'\t {key} {len(val)}')
+    output_dir = hlp.get_output_directory()
+    with open(output_dir / 'response_length.json', 'w') as f:
+        json.dump(output, f, indent=4)
+
+
 def convergence():
     CONVERGENCE_PARAM = 0.1
+
+    output = {}
 
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} convergence')
@@ -48,27 +123,33 @@ def convergence():
             received_addrs = set()
             converged = False
             if filename.is_file() and not node_ip.endswith('.swp'):
-                with open(filename) as f:
-                    entries = json.load(f)
-                    for entry_idx, entry in enumerate(entries):
-                        if entry['addresses']:
-                            new_addrs = set()
-                            for addr in entry['addresses']:
-                                if addr[0] not in received_addrs:
-                                    new_addrs.add(addr[0])
-                                    received_addrs.add(addr[0])
-                            # if node_ip == 'ofcpvq2qmvn3itcx4ljqpghxendxqlk7b52mpv7ughbkmr5773nmrnad.onion':
-                            #     print(entry['date'], len(entry['addresses']), len(new_addrs), len(received_addrs))
-                            if 100*len(new_addrs) / len(entry['addresses']) < CONVERGENCE_PARAM:
-                                convergence[entry_idx].append(node_ip)
-                                converged = True
-                                break
+                try:
+                    with open(filename) as f:
+                        entries = json.load(f)
+                except json.decoder.JSONDecodeError:
+                    continue
+                for entry_idx, entry in enumerate(entries):
+                    if entry['addresses']:
+                        new_addrs = set()
+                        for addr in entry['addresses']:
+                            if addr[0] not in received_addrs:
+                                new_addrs.add(addr[0])
+                                received_addrs.add(addr[0])
+                        if 100*len(new_addrs) / len(entry['addresses']) < CONVERGENCE_PARAM:
+                            convergence[entry_idx].append(node_ip)
+                            converged = True
+                            break
             if received_addrs and not converged:
                 convergence[-1].append(node_ip)
 
         logging.info(ledger)
+        output[ledger] = []
         for key, val in sorted(convergence.items(), key=lambda x: len(x[1]), reverse=True):
-            logging.info(f'\t {key} {len(val)}')
+            output[ledger].append([key, len(val)])
+            # logging.info(f'\t {key} {len(val)}')
+    output_dir = hlp.get_output_directory()
+    with open(output_dir / 'convergence.json', 'w') as f:
+        json.dump(output, f, indent=4)
 
 
 def get_geodata(ledger, reachable_nodes, geography=True):
@@ -150,15 +231,21 @@ def version(reachable_nodes):
                 csv_writer.writerow([key, val])
 
 
+LEDGERS = ['bitcoin', 'bitcoin_cash', 'dogecoin', 'litecoin', 'zcash']
+
+
 logging.info('Start parsing')
 
 reachable_nodes = {}
 for ledger in LEDGERS:
     logging.info(f'Getting {ledger} reachable nodes')
     reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
-
-# convergence()
 geography(reachable_nodes)
 network(reachable_nodes)
 ip_type(reachable_nodes)
 version(reachable_nodes)
+
+convergence()
+response_length()
+
+network_edges()
