@@ -93,7 +93,7 @@ def update_node(ledger, ip, port, version, addresses):
     })
 
     with open(output_dir / ip, 'w') as f:
-        json.dump(entries, f, indent=4)
+        json.dump(entries, f)
 
 
 def get_past_week():
