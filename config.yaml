@@ -1,10 +1,10 @@
 # The ledgers for which an analysis should be performed.
 ledgers:
-  # - bitcoin
-  # - bitcoin_cash
-  # - dogecoin
+  - bitcoin
+  - bitcoin_cash
+  - dogecoin
   - litecoin
-  # - zcash
+  - zcash
 
 execution_parameters:
   concurrency: 100
