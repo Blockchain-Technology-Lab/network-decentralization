@@ -7,7 +7,6 @@ import pathlib
 import requests
 import time
 import nmap3
-import multiprocessing
 import logging
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
@@ -106,63 +105,38 @@ def get_past_week():
     return past_week
 
 
-def parse_nodefile(filename, nodelist, reachable_only=False):
+def get_nodes(ledger, reachable_only=False):
     past_week = get_past_week()
+    output_dir = get_output_directory(ledger)
+    filenames = list(pathlib.Path(output_dir).iterdir())
 
-    if filename.is_file():
-        with open(filename) as f:
-            entries = json.load(f)
-            for entry in entries:
-                if entry['date'].split()[0] in past_week and entry['status']:
-                    node_ip = str(filename).split('/')[-1]
-                    node_port = entry['port']
-                    node_version = entry['version']
-                    nodelist.append((node_ip, node_port, node_version))
-                    if reachable_only:
-                        break
-                    else:
-                        for addr in entry['addresses']:
-                            nodelist.append((addr[0], addr[1], node_version))
+    nodes = set()
+    for ctr, filename in enumerate(filenames):
+        print(f'{ledger} - parsed {ctr:,}/{len(filenames):,} files ({100*ctr/len(filenames):.2f}%)', end='\r')
+
+        if filename.is_file():
+            with open(filename) as f:
+                entries = json.load(f)
+                for entry in entries:
+                    if entry['date'].split()[0] in past_week and entry['status']:
+                        node_ip = str(filename).split('/')[-1]
+                        node_port = entry['port']
+                        node_version = entry['version']
+                        nodes.add((node_ip, node_port, node_version))
+                        if reachable_only:
+                            break
+                        else:
+                            for addr in entry['addresses']:
+                                nodes.add((addr[0], addr[1], node_version))
+    return nodes
 
 
 def get_all_nodes(ledger):
-    concurrency = get_concurrency()
-
-    manager = multiprocessing.Manager()
-    nodes = manager.list()
-
-    jobs = []
-    pool = multiprocessing.Pool(processes=concurrency)
-    output_dir = get_output_directory(ledger)
-    for fname in pathlib.Path(output_dir).iterdir():
-        p = pool.apply_async(parse_nodefile, args=(fname, nodes))
-        jobs.append(p)
-    ctr = 0
-    for p in jobs:
-        p.wait()
-        ctr += 1
-        print(f'{ledger} - parsed {ctr:,}/{len(jobs):,} files ({100*ctr/len(jobs):.2f}%)', end='\r')
-    return set(nodes)
+    return get_nodes(ledger)
 
 
 def get_reachable_nodes(ledger):
-    concurrency = get_concurrency()
-
-    manager = multiprocessing.Manager()
-    nodes = manager.list()
-
-    jobs = []
-    pool = multiprocessing.Pool(processes=concurrency)
-    output_dir = get_output_directory(ledger)
-    for fname in pathlib.Path(output_dir).iterdir():
-        p = pool.apply_async(parse_nodefile, args=(fname, nodes, True))
-        jobs.append(p)
-    ctr = 0
-    for p in jobs:
-        p.wait()
-        ctr += 1
-        print(f'{ledger} - parsed {ctr:,}/{len(jobs):,} files ({100*ctr/len(jobs):.2f}%)', end='\r')
-    return set(nodes)
+    return get_nodes(ledger, True)
 
 
 def get_ipv6_nodes(ledger):
