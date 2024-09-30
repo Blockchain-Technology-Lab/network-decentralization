@@ -1,4 +1,5 @@
 from network_decentralization.constants import DEFAULT_PORTS
+import shutil
 import datetime
 import dns.resolver
 from yaml import safe_load
@@ -92,8 +93,11 @@ def update_node(ledger, ip, port, version, addresses):
         'addresses': [list(addr) for addr in addresses],
     })
 
-    with open(output_dir / ip, 'w') as f:
+    # Write output in two steps to avoid broken files in case of abrupt interruption
+    with open(output_dir / f'{ip}.backup', 'w') as f:
         json.dump(entries, f)
+
+    shutil.move(output_dir / f'{ip}.backup', output_dir / ip)
 
 
 def get_last_days(days):
