@@ -96,17 +96,18 @@ def update_node(ledger, ip, port, version, addresses):
         json.dump(entries, f)
 
 
-def get_past_week():
+def get_last_days(days):
     day = datetime.date.today()
     past_week = set()
-    while len(past_week) < 7:
+    while len(past_week) < days:
         past_week.add(day.strftime('%d/%m/%Y'))
         day -= datetime.timedelta(1)
     return past_week
 
 
-def get_nodes(ledger, reachable_only=False):
-    past_week = get_past_week()
+def get_nodes(ledger, reachable_only=False, time_window=0):
+    if time_window > 0:
+        dates_in_time_window = get_last_days(time_window)
     output_dir = get_output_directory(ledger)
     filenames = list(pathlib.Path(output_dir).iterdir())
 
@@ -118,7 +119,7 @@ def get_nodes(ledger, reachable_only=False):
             with open(filename) as f:
                 entries = json.load(f)
                 for entry in entries:
-                    if entry['date'].split()[0] in past_week and entry['status']:
+                    if entry['status'] and ((time_window == 0) or (time_window > 0 and entry['date'].split()[0] in dates_in_time_window)):
                         node_ip = str(filename).split('/')[-1]
                         node_port = entry['port']
                         node_version = entry['version']
@@ -131,12 +132,12 @@ def get_nodes(ledger, reachable_only=False):
     return nodes
 
 
-def get_all_nodes(ledger):
-    return get_nodes(ledger)
+def get_all_nodes(ledger, time_window=0):
+    return get_nodes(ledger, time_window)
 
 
-def get_reachable_nodes(ledger):
-    return get_nodes(ledger, True)
+def get_reachable_nodes(ledger, time_window=0):
+    return get_nodes(ledger, True, time_window)
 
 
 def get_ipv6_nodes(ledger):
@@ -174,8 +175,8 @@ def get_seed_nodes(ledger):
     return nodes
 
 
-def get_known_nodes(ledger):
-    return get_all_nodes(ledger).union(get_seed_nodes(ledger))
+def get_known_nodes(ledger, time_window=0):
+    return get_all_nodes(ledger, time_window).union(get_seed_nodes(ledger))
 
 
 def get_ip_geodata(ip_addr):

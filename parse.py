@@ -14,7 +14,7 @@ def network_edges():
     if not network_edge_dir.is_dir():
         network_edge_dir.mkdir()
 
-    past_week = hlp.get_past_week()
+    past_week = hlp.get_last_days(7)
 
     for ledger in LEDGERS:
         reachable_nodes = set()
