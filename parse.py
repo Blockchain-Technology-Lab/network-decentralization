@@ -236,22 +236,24 @@ def version(reachable_nodes):
             for key, val in sorted(versions.items(), key=lambda x: x[1], reverse=True):
                 csv_writer.writerow([key, val])
 
+LEDGERS = hlp.get_ledgers()
 
-LEDGERS = ['bitcoin', 'bitcoin_cash', 'dogecoin', 'litecoin', 'zcash']
+def main():
+    logging.info('Start parsing')
 
+    reachable_nodes = {}
+    for ledger in LEDGERS:
+        logging.info(f'Getting {ledger} reachable nodes')
+        reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
+    geography(reachable_nodes)
+    network(reachable_nodes)
+    ip_type(reachable_nodes)
+    version(reachable_nodes)
 
-logging.info('Start parsing')
+    convergence()
+    response_length()
 
-reachable_nodes = {}
-for ledger in LEDGERS:
-    logging.info(f'Getting {ledger} reachable nodes')
-    reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
-geography(reachable_nodes)
-network(reachable_nodes)
-ip_type(reachable_nodes)
-version(reachable_nodes)
+    network_edges()
 
-convergence()
-response_length()
-
-network_edges()
+if __name__ == '__main__':
+    main()
