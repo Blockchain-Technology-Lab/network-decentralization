@@ -184,14 +184,15 @@ def response_length_plot():
 
         plt.savefig(f'output/response_size_{ledger}.png', bbox_inches='tight', dpi=100)
 
+LEDGERS = hlp.get_ledgers()
 
-LEDGERS = ['bitcoin', 'bitcoin_cash', 'dogecoin', 'litecoin', 'zcash']
+def main():
+    geo_plot('Geography')
+    geo_plot('ASN')
+    ip_type_plot()
+    version_plot()
+    #network_edges()
+    response_length_plot()
 
-geo_plot('Geography')
-geo_plot('ASN')
-ip_type_plot()
-version_plot()
-
-# network_edges()
-
-response_length_plot()
+if __name__ == '__main__':
+    main()
