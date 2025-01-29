@@ -186,16 +186,16 @@ def get_known_nodes(ledger, time_window=0):
 def get_ip_geodata(ip_addr):
     data = None
     while not data:
-        r = requests.get(f'https://ipapi.co/{ip_addr}/json/')
+        r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
         try:
             data = r.json()
-            if 'error' in data and data['reason'] == 'RateLimited':
+            if 'error' in data:
                 data = None
         except requests.exceptions.JSONDecodeError:
             pass
         if data is None:
-            logging.error('Geodata rate limited, sleeping for 10 mins...')
-            time.sleep(10*60)
+            logging.error('Geodata rate limited, sleeping for 1 min...')
+            time.sleep(60)
     return data
 
 
