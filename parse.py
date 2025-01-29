@@ -166,9 +166,15 @@ def get_geodata(ledger, reachable_nodes, geography=True):
             if 'error' in ip_info and ip_info['error']:
                 continue
             if geography:
-                countries[ip_info['country_name']].append(ip_addr)
+                try:
+                    countries[ip_info['country_name']].append(ip_addr)
+                except KeyError:
+                    countries[ip_info['country']].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             else:
-                countries[f"{ip_info['asn']} ({ip_info['org']})"].append(ip_addr)
+                 try:
+                     countries[f"{ip_info['asn']} ({ip_info['org']})"].append(ip_addr)
+                 except KeyError:
+                     countries[f"{ip_info['as']} ({ip_info['org']})"].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
         elif ip_addr.endswith('onion'):
             countries['Tor'].append(ip_addr)
         else:
