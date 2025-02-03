@@ -20,13 +20,21 @@ def main():
             if filename.is_file() and not str(filename).endswith('.swp'):
                 with open(filename) as f:
                     entries = json.load(f)
-                    if (entries[-1])['status']:
-                       active.add(filename)
+                    len_entries = len(entries)
+                    if len_entries < 7:
+                        for nb in range(len_entries):
+                            if (entries[len_entries-nb-1])['status']:
+                                active.add(filename)
+                                break
+                    else:
+                        for nbr in range(7):
+                            if (entries[len_entries-nbr-1])['status']:
+                                active.add(filename)
+                                break
 
         non_active = set(filenames) - active
         logging.info(f'{ledger} - {len(active):,} active nodes')
-        for i in non_active:
-            logging.info(f'{ledger} - {len(non_active):,} never active nodes: {i}')
+        logging.info(f'{ledger} - {len(non_active):,} never active nodes')
 
         for filename in non_active:
             os.remove(filename)
