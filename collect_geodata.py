@@ -8,25 +8,22 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 def main():
     ledgers = hlp.get_ledgers()
-    while True:
-        timings = {}
-        for ledger in ledgers:
-            start = time.time()
-            collect_geodata(ledger)
-            total_time = time.time() - start
-            timings[ledger] = total_time
+    timings = {}
+    for ledger in ledgers:
+        start = time.time()
+        collect_geodata(ledger)
+        total_time = time.time() - start
+        timings[ledger] = total_time
 
-        print(7*'----------------\n')
-        for ledger in hlp.get_ledgers():
-            total_time = timings[ledger]
-            days = int(total_time / 86400)
-            hours = int((total_time - days*86400) / 3600)
-            mins = int((total_time - hours*3600 - days*86400) / 60)
-            secs = int(total_time - mins*60 - hours*3600 - days*86400)
-            print(f'\t{ledger} total time: {hours:02} hours, {mins:02} mins, {secs:02} secs')
-        print(7*'----------------\n')
-
-        time.sleep(60*60)
+    print(2*'----------------\n')
+    for ledger in hlp.get_ledgers():
+        total_time = timings[ledger]
+        days = int(total_time / 86400)
+        hours = int((total_time - days*86400) / 3600)
+        mins = int((total_time - hours*3600 - days*86400) / 60)
+        secs = int(total_time - mins*60 - hours*3600 - days*86400)
+        print(f'\tcollect_geodata.py: {ledger} total time: {hours:02} hours, {mins:02} mins, {secs:02} secs')
+    print(2*'----------------\n')
 
 
 if __name__ == '__main__':
