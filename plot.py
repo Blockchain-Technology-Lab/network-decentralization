@@ -28,6 +28,8 @@ def network_edges():
         G = nx.DiGraph()
         G.add_edges_from(edges)
 
+        fig, ax = plt.subplots(figsize=(20, 15))
+
         pos = nx.spring_layout(G)
         nx.draw_networkx_nodes(G, pos, node_size=50)
         logging.info(f'{ledger} - nodes')
@@ -37,10 +39,9 @@ def network_edges():
         logging.info(f'{ledger} - edges')
 
         # plt.show()
-        figure = plt.gcf()  # get current figure
-        figure.set_size_inches(80, 60)
 
         plt.savefig(f'output/graph_{ledger}.png', bbox_inches='tight', dpi=100)
+        plt.close(fig)
 
         logging.info(f'{ledger} - finished')
 
@@ -68,16 +69,16 @@ def geo_plot(plot_type):
 
         fig, ax = plt.subplots()
         # ax.pie(sizes, labels=labels, textprops={'fontsize': 80}, counterclock=False, startangle=90)
-        ax.pie(sizes, textprops={'fontsize': 80}, counterclock=False, startangle=90)
-        plt.legend(legend_labels, loc='upper right', fontsize=50)
+        ax.pie(sizes, textprops={'fontsize': 20}, counterclock=False, startangle=90)
+        plt.legend(legend_labels, loc='upper right', fontsize=12)
 
-        plt.title(f'{ledger.replace("_", " ").title()} Nodes {plot_type} (Total: {sum(sizes):,})', fontsize=130)
+        plt.title(f'{ledger.replace("_", " ").title()} Nodes {plot_type} (Total: {sum(sizes):,})', fontsize=32)
 
         figure = plt.gcf()  # get current figure
-        figure.set_size_inches(80, 60)
+        figure.set_size_inches(20, 15)
 
         plt.savefig(f'output/{plot_type.lower()}_{ledger}.png', bbox_inches='tight', dpi=100)
-
+        plt.close(fig)
 
 def version_plot():
     for ledger in LEDGERS:
@@ -102,16 +103,16 @@ def version_plot():
 
         fig, ax = plt.subplots()
         # ax.pie(sizes, labels=labels, textprops={'fontsize': 80}, counterclock=False, startangle=90)
-        ax.pie(sizes, textprops={'fontsize': 80}, counterclock=False, startangle=90)
-        plt.legend(legend_labels, loc='upper right', fontsize=50)
+        ax.pie(sizes, textprops={'fontsize': 20}, counterclock=False, startangle=90)
+        plt.legend(legend_labels, loc='upper right', fontsize=12)
 
-        plt.title(f'{ledger.replace("_", " ").title()} nodes version (Total: {sum(sizes):,})', fontsize=130)
+        plt.title(f'{ledger.replace("_", " ").title()} nodes version (Total: {sum(sizes):,})', fontsize=32)
 
         figure = plt.gcf()  # get current figure
-        figure.set_size_inches(80, 60)
+        figure.set_size_inches(20, 15)
 
         plt.savefig(f'output/version_{ledger}.png', bbox_inches='tight', dpi=100)
-
+        plt.close(fig)
 
 def ip_type_plot():
     logging.info('Plotting by ip type')
@@ -129,7 +130,7 @@ def ip_type_plot():
 
     # set width of bar
     barWidth = 0.25
-    plt.subplots()
+    fig, ax = plt.subplots()
 
     # Set position of bar on X axis
     br1 = np.arange(len(ipv4))
@@ -142,19 +143,19 @@ def ip_type_plot():
     plt.bar(br3, onion, color='b', width=barWidth, edgecolor='grey', label='onion')
 
     # Adding Xticks
-    plt.xlabel('Ledger', fontsize=80)
-    plt.ylabel('Number of nodes', fontsize=80)
-    plt.xticks([r + barWidth for r in range(len(ipv4))], [ledger.replace('_', ' ').title() for ledger in ledgers], fontsize=70)
-    plt.yticks(fontsize=70)
-    plt.legend(fontsize=80)
+    plt.xlabel('Ledger', fontsize=20)
+    plt.ylabel('Number of nodes', fontsize=20)
+    plt.xticks([r + barWidth for r in range(len(ipv4))], [ledger.replace('_', ' ').title() for ledger in ledgers], fontsize=17)
+    plt.yticks(fontsize=17)
+    plt.legend(fontsize=20)
 
-    plt.title('Address types (reachable nodes)', fontsize=130)
+    plt.title('Address types (reachable nodes)', fontsize=32)
 
     figure = plt.gcf()  # get current figure
-    figure.set_size_inches(80, 60)
+    figure.set_size_inches(20, 15)
 
     plt.savefig('output/ip_type.png', bbox_inches='tight', dpi=100)
-
+    plt.close(fig)
 
 def response_length_plot():
     logging.info('Plotting by response length')
@@ -173,25 +174,27 @@ def response_length_plot():
 
         ax.bar(x, y, width=5)
 
-        plt.title(f'{ledger.replace("_", " ").title()} average response sizes', fontsize=130)
-        plt.xlabel('Addresses in response', fontsize=80)
-        plt.xticks(fontsize=60)
-        plt.ylabel('Nodes', fontsize=80)
-        plt.yticks(fontsize=60)
+        plt.title(f'{ledger.replace("_", " ").title()} average response sizes', fontsize=32)
+        plt.xlabel('Addresses in response', fontsize=20)
+        plt.xticks(fontsize=15)
+        plt.ylabel('Nodes', fontsize=20)
+        plt.yticks(fontsize=15)
 
         figure = plt.gcf()  # get current figure
-        figure.set_size_inches(80, 60)
+        figure.set_size_inches(20, 15)
 
         plt.savefig(f'output/response_size_{ledger}.png', bbox_inches='tight', dpi=100)
+        plt.close(fig)
 
 LEDGERS = hlp.get_ledgers()
 
 def main():
     geo_plot('Geography')
     geo_plot('ASN')
+    geo_plot('Org')
     ip_type_plot()
     version_plot()
-    #network_edges()
+  # network_edges()
     response_length_plot()
 
 if __name__ == '__main__':
