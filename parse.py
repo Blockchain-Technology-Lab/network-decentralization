@@ -152,7 +152,7 @@ def convergence():
         json.dump(output, f, indent=4)
 
 
-def get_geodata(ledger, reachable_nodes, geography=True):
+def get_geodata(ledger, reachable_nodes, mode):
     output_dir = hlp.get_output_directory() / 'geodata'
     countries = defaultdict(list)
 
@@ -165,16 +165,22 @@ def get_geodata(ledger, reachable_nodes, geography=True):
             ip_info = geodata[ip_addr]
             if 'error' in ip_info and ip_info['error']:
                 continue
-            if geography:
+            if mode == 1:
                 try:
                     countries[ip_info['country_name']].append(ip_addr)
                 except KeyError:
                     countries[ip_info['country']].append(ip_addr)
-            else:
+            elif mode == 2:
                  try:
-                     countries[f"{ip_info['asn']} ({ip_info['org']})"].append(ip_addr)
+                     countries[f"{ip_info['asn']}"].append(ip_addr)
                  except KeyError:
-                     countries[f"{ip_info['as']} ({ip_info['org']})"].append(ip_addr)
+                     try:
+                         asn = (ip_info['as'].split())[0]
+                         countries[f"{asn}"].append(ip_addr)
+                     except IndexError:
+                         logging.info(f'IndexError: {ip_info}')
+            elif mode == 3:
+                 countries[f"{ip_info['org']}"].append(ip_addr)
         elif ip_addr.endswith('onion'):
             countries['Tor'].append(ip_addr)
         else:
@@ -186,7 +192,7 @@ def get_geodata(ledger, reachable_nodes, geography=True):
 def geography(reachable_nodes):
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} geography')
-        countries = get_geodata(ledger, reachable_nodes)
+        countries = get_geodata(ledger, reachable_nodes, 1)
         logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
         with open(f'./output/geography_{ledger}.csv', 'w') as f:
             csv_writer = csv.writer(f)
@@ -198,7 +204,7 @@ def geography(reachable_nodes):
 def network(reachable_nodes):
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} network')
-        countries = get_geodata(ledger, reachable_nodes, False)
+        countries = get_geodata(ledger, reachable_nodes, 2)
         logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
         with open(f'./output/asn_{ledger}.csv', 'w') as f:
             csv_writer = csv.writer(f)
@@ -206,6 +212,16 @@ def network(reachable_nodes):
             for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
                 csv_writer.writerow([key, len(val)])
 
+def org(reachable_nodes):
+    for ledger in LEDGERS:
+        logging.info(f'Analyzing {ledger} organizations')
+        countries = get_geodata(ledger, reachable_nodes, 3)
+        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
+        with open(f'./output/org_{ledger}.csv', 'w') as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(['org', 'node_count'])
+            for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
+                csv_writer.writerow([key, len(val)])
 
 def version(reachable_nodes):
     for ledger in LEDGERS:
@@ -243,17 +259,18 @@ def main():
 
     reachable_nodes = {}
     for ledger in LEDGERS:
-        logging.info(f'Getting {ledger} reachable nodes')
+        logging.info(f'parse.py: Getting {ledger} reachable nodes')
         reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
     geography(reachable_nodes)
     network(reachable_nodes)
+    org(reachable_nodes)
     ip_type(reachable_nodes)
     version(reachable_nodes)
 
     convergence()
     response_length()
 
-    network_edges()
+#    network_edges()
 
 if __name__ == '__main__':
     main()
