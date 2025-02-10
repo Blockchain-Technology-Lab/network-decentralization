@@ -12,8 +12,8 @@ python3 collect_osdata.py
 python3 parse.py
 python3 plot.py
 
-mkdir output/"$(date +%d-%m-%y)"
-mv -t output/"$(date +%d-%m-%y)" output/*.png output/*.csv output/*.json
+mkdir output/"$(date +%Y-%m-%d)"
+mv -t output/"$(date +%Y-%m-%d)" output/*.png output/*.csv output/*.json
 
 sleep 7d
 
