@@ -42,7 +42,7 @@ def get_node_addresses(ledger, node_ip, node_port):
                 ip_type = network_types[network_id]
                 addresses.add((msg[ip_type], msg['port'], msg['services'], msg['timestamp'], ip_type))
 
-        logging.info(f'{ledger} {node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
+        logging.debug(f'{ledger} {node_ip}:{node_port} - Version {version}, Addresses {len(addresses)}')
     except (network_proto.ProtocolError, network_proto.ConnectionError, socket.error) as err:
         logging.debug(f'{ledger} {node_ip}:{node_port} - {err}')
     except network_proto.UnsupportedNetworkIdError as err:
@@ -92,6 +92,10 @@ def collect_geodata(ledger):
         with open(filename) as f:
             geodata = json.load(f)
     except FileNotFoundError:
+        logging.info(f'FileNotFoundError: {filename}')
+        geodata = {}
+    except json.decoder.JSONDecodeError:
+        logging.info(f'JSONDecodeError: {filename}')
         geodata = {}
 
     nodes = hlp.get_reachable_nodes(ledger)
@@ -103,7 +107,7 @@ def collect_geodata(ledger):
             with open(filename, 'w') as f:
                 json.dump(geodata, f, indent=4)
 
-            logging.info(f'{ledger} - Collected geodata for {node_ip}')
+            logging.debug(f'{ledger} - Collected geodata for {node_ip}')
             time.sleep(5)  # Sleep to avoid getting rate limited
 
 
@@ -119,7 +123,7 @@ def get_os_info(node, osdata, ledger, all_nodes):
             logging.info(f'{ledger} get_os_info error: {e}')
     else:
         osdata[node_ip] = None
-        logging.info(f'{ledger} - {node_ip} already exists ({computed_percentage:.2f}%)')
+        logging.debug(f'{ledger} - {node_ip} already exists ({computed_percentage:.2f}%)')
 
 
 def collect_osdata(ledger, timestamp=None):
@@ -141,7 +145,12 @@ def collect_osdata(ledger, timestamp=None):
         for key, val in data.items():
             osdata[key] = val
     except FileNotFoundError:
-        pass
+        logging.info(f'FileNotFoundError: {filename}')
+        geodata = {}
+    except json.decoder.JSONDecodeError:
+        logging.info(f'JSONDecodeError: {filename}')
+        geodata = {}
+
 
     logging.info(f'{ledger} - Getting list of nodes')
     nodes = hlp.get_reachable_nodes(ledger)

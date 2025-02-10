@@ -74,6 +74,10 @@ def update_node(ledger, ip, port, version, addresses):
         with open(output_dir / ip) as f:
             entries = json.load(f)
     except FileNotFoundError:
+        logging.info(f'FileNotFoundError: {filename}')
+        entries = []
+    except json.decoder.JSONDecodeError:
+        logging.info(f'JSONDecodeError: {filename}')
         entries = []
 
     if version is None:

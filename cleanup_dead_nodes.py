@@ -31,11 +31,9 @@ def main():
                             if (entries[len_entries-nbr-1])['status']:
                                 active.add(filename)
                                 break
-
         non_active = set(filenames) - active
-        logging.info(f'{ledger} - {len(active):,} active nodes')
-        logging.info(f'{ledger} - {len(non_active):,} never active nodes')
-
+        logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(active):,} active nodes')
+        logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(non_active):,} never active nodes')
         for filename in non_active:
             os.remove(filename)
 
