@@ -1,0 +1,11 @@
+
+{
+    "dns": [
+        "dnsseed.z.cash",
+        "dnsseed.str4d.xyz",
+        "mainnet.seeder.zfnd.org",
+        "mainnet.is.yolo.money"
+    ],
+    "seed_list": [
+    ]
+}
