@@ -44,7 +44,7 @@ def get_concurrency():
     return get_config_data()['execution_parameters']['concurrency']
 
 
-def get_output_directory(ledger=None):
+def get_output_directory(ledger=None, dead=False):
     """
     Reads the config file and retrieves the output directory
     :param ledger: optional, if set then it returns the subdirectory for the given ledger
@@ -58,6 +58,15 @@ def get_output_directory(ledger=None):
         for subdir_type in ['osdata', 'geodata']:
             subdir = output_dir / subdir_type
             subdir.mkdir()
+
+    if dead:
+        output_dir = output_dir / "dead_nodes"
+        if not output_dir.is_dir():
+            output_dir.mkdir()
+        output_dir = output_dir / ledger
+        if not output_dir.is_dir():
+            output_dir.mkdir()
+        return output_dir
 
     if ledger:
         output_dir = output_dir / ledger
