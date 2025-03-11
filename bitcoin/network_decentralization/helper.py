@@ -198,6 +198,14 @@ def get_ip_geodata(ip_addr):
         r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
         try:
             data = r.json()
+            logging.info(f'{data}')
+            if not data.get('org') and data.get('as'):
+                data['org'] = data['as'][data['as'].find(' ')+1:]
+                logging.info(f'{data}')
+            if not data.get('org') or not data.get('country'):
+                new_r = requests.get(f'https://api.ipapi.is/?q={ip_addr}') # Max 1000 HTTP requests per day
+                data = new_r.json()
+                logging.info(f'{data}')
             if 'error' in data:
                 data = None
         except requests.exceptions.JSONDecodeError:
