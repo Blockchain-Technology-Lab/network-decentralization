@@ -5,6 +5,9 @@ import pathlib
 import network_decentralization.helper as hlp
 from collections import defaultdict
 import logging
+import time
+import pandas as pd
+from datetime import datetime
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -167,20 +170,21 @@ def get_geodata(ledger, reachable_nodes, mode):
                 continue
             if mode == 1:
                 try:
-                    countries[ip_info['country_name']].append(ip_addr)
-                except KeyError:
                     countries[ip_info['country']].append(ip_addr)
+                except KeyError:
+                    countries[ip_info['location']['country']].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             elif mode == 2:
                  try:
-                     countries[f"{ip_info['asn']}"].append(ip_addr)
+                     asn = (ip_info['as'].split())[0]
+                     countries[f'{asn}'].append(ip_addr)
                  except KeyError:
-                     try:
-                         asn = (ip_info['as'].split())[0]
-                         countries[f"{asn}"].append(ip_addr)
-                     except IndexError:
-                         logging.info(f'IndexError: {ip_info}')
+                     asn = "AS" + ip_info['asn']['asn']
+                     countries[f'{asn}'].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             elif mode == 3:
-                 countries[f"{ip_info['org']}"].append(ip_addr)
+                 try:
+                     countries[f"{ip_info['org']}"].append(ip_addr)
+                 except KeyError:
+                     countries[ip_info['asn']['org']].append(ip_addr)
         elif ip_addr.endswith('onion'):
             countries['Tor'].append(ip_addr)
         else:
@@ -189,16 +193,44 @@ def get_geodata(ledger, reachable_nodes, mode):
     return countries
 
 
-def geography(reachable_nodes):
+def geography(reachable_nodes, mode):
+    name = ''
+    if mode == 1:
+        name = 'Countries'
+    elif mode == 3:
+        name = 'Organizations'
+
     for ledger in LEDGERS:
-        logging.info(f'Analyzing {ledger} geography')
-        countries = get_geodata(ledger, reachable_nodes, 1)
-        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
-        with open(f'./output/geography_{ledger}.csv', 'w') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerow(['country', 'node_count'])
-            for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
-                csv_writer.writerow([key, len(val)])
+        logging.info(f'Analyzing {ledger} {name}')
+        geodata = get_geodata(ledger, reachable_nodes, mode)
+        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in geodata.values()])}')
+        geodata_counter = {}
+
+        for key, val in sorted(geodata.items(), key=lambda x: len(x[1]), reverse=True):
+            if key:
+                geodata_counter[key] = len(val)
+            else:
+                geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
+
+        filename = pathlib.Path(f'./output/{name.lower()}_{ledger}.csv')
+
+        if filename.is_file():
+            df = pd.read_csv(filename)
+            geodata_csv = df[f'{name}'].tolist()
+            geodata_in_order = [0] * len(geodata_csv)
+            for geodata in geodata_counter.keys():
+                if geodata in geodata_csv:
+                    geodata_in_order[geodata_csv.index(geodata)] = geodata_counter[geodata]
+                else:
+                    rows, columns = df.shape
+                    df.loc[rows] = [geodata] + [0]*(columns-1)
+                    geodata_in_order.append(geodata_counter[geodata])
+            df[datetime.today().strftime('%Y-%m-%d')] = geodata_in_order
+            df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index = False)
+        else:
+            geodata_df = pd.DataFrame.from_dict(geodata_counter, orient='index', columns=[datetime.today().strftime('%Y-%m-%d')])
+            geodata_df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index_label = name)
+
 
 
 def network(reachable_nodes):
@@ -212,45 +244,61 @@ def network(reachable_nodes):
             for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
                 csv_writer.writerow([key, len(val)])
 
-def org(reachable_nodes):
-    for ledger in LEDGERS:
-        logging.info(f'Analyzing {ledger} organizations')
-        countries = get_geodata(ledger, reachable_nodes, 3)
-        logging.info(f'{ledger} - Total nodes: {sum([len(val) for val in countries.values()])}')
-        with open(f'./output/org_{ledger}.csv', 'w') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerow(['org', 'node_count'])
-            for key, val in sorted(countries.items(), key=lambda x: len(x[1]), reverse=True):
-                csv_writer.writerow([key, len(val)])
 
-def version(reachable_nodes):
+def version(reachable_nodes, mode):
+    name = ''
+    if mode == 1:
+        name = 'Clients'
+    if mode == 2:
+        name = 'Protocols'
+
     for ledger in LEDGERS:
-        logging.info(f'Analyzing {ledger} versions')
+        logging.info(f'Analyzing {ledger} {name}')
         versions = defaultdict(int)
         for node in reachable_nodes[ledger]:
-            version = node[2]
-            if ledger == 'bitcoin':
-                expr = re.search(r'Satoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                if expr:
-                    version = expr.group(0)
-            elif ledger == 'litecoin':
-                expr = re.search(r'LitecoinCore:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                if expr:
-                    version = expr.group(0)
-            elif ledger == 'zcash':
-                expr = re.search(r'MagicBean:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                if expr:
-                    version = expr.group(0)
-            elif ledger == 'dogecoin':
-                expr = re.search(r'Shibetoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                if expr:
-                    version = expr.group(0)
-            versions[version] += 1
-        with open(f'./output/version_{ledger}.csv', 'w') as f:
-            csv_writer = csv.writer(f)
-            csv_writer.writerow(['version', 'node_count'])
-            for key, val in sorted(versions.items(), key=lambda x: x[1], reverse=True):
-                csv_writer.writerow([key, val])
+            if mode == 1:
+                version = node[2]
+                if ledger == 'bitcoin':
+                    expr = re.search(r'Satoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                    if expr:
+                        version = expr.group(0)
+                elif ledger == 'litecoin':
+                    expr = re.search(r'LitecoinCore:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                    if expr:
+                        version = expr.group(0)
+                elif ledger == 'zcash':
+                    expr = re.search(r'MagicBean:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                    if expr:
+                        version = expr.group(0)
+                elif ledger == 'dogecoin':
+                    expr = re.search(r'Shibetoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
+                    if expr:
+                        version = expr.group(0)
+                versions[version] += 1
+            elif mode == 2:
+                version = node[3]
+                versions[version] += 1
+
+        filename = pathlib.Path(f'./output/version_{ledger}.csv')
+
+        if filename.is_file():
+            df = pd.read_csv(filename)
+            versions_csv = df[name].tolist()
+            versions_in_order = [0] * len(versions_csv)
+            logging.info(f'{versions}')
+            for version in versions.keys():
+                if version in versions_csv:
+                    versions_in_order[versions_csv.index(version)] = versions[version]
+                else:
+                    rows, columns = df.shape
+                    df.loc[rows] = [version] + [0]*(columns-1)
+                    versions_in_order.append(versions[version])
+            df[datetime.today().strftime('%Y-%m-%d')] = versions_in_order
+            df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index = False)
+        else:
+            versions_df = pd.DataFrame.from_dict(versions, orient='index', columns=[datetime.today().strftime('%Y-%m-%d')])
+            versions_df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index_label = name)
+
 
 LEDGERS = hlp.get_ledgers()
 
@@ -261,13 +309,14 @@ def main():
     for ledger in LEDGERS:
         logging.info(f'parse.py: Getting {ledger} reachable nodes')
         reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
-    geography(reachable_nodes)
-    network(reachable_nodes)
-    org(reachable_nodes)
+    geography(reachable_nodes, 1)
+    geography(reachable_nodes, 3)
+#    network(reachable_nodes)
     ip_type(reachable_nodes)
-    version(reachable_nodes)
+    version(reachable_nodes, 1)
+    version(reachable_nodes, 2)
 
-    convergence()
+#    convergence()
     response_length()
 
 #    network_edges()
