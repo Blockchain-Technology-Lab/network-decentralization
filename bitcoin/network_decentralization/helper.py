@@ -35,6 +35,12 @@ def get_ledgers():
     """
     return get_config_data()['ledgers']
 
+def get_active():
+    """
+    Retrieves data regarding the packets to clean up 
+    :returns: an integer that corresponds to the number of packets that will be used by cleanup_dead_nodes.py
+    """
+    return get_config_data()['time_active']
 
 def get_concurrency():
     """
