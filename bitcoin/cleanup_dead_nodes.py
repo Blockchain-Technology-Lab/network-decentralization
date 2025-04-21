@@ -35,7 +35,7 @@ def main():
         non_active = set(filenames) - active
         logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(active):,} active nodes')
         logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(non_active):,} never active nodes')
-        for filename in non_active:
+        for filename in non_active: # move inactive node files to dead_nodes folder
             f_name = os.path.basename(filename)
             new_path = hlp.get_output_directory(ledger, True) / f_name
             os.rename(filename, new_path)
