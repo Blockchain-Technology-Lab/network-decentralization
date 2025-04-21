@@ -8,6 +8,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 def main():
     LEDGERS = hlp.get_ledgers()
+    last_time_active = hlp.get_active()
 
     for ledger in LEDGERS:
         active = set()
@@ -21,13 +22,13 @@ def main():
                 with open(filename) as f:
                     entries = json.load(f)
                     len_entries = len(entries)
-                    if len_entries < 1:
+                    if len_entries < last_time_active:
                         for nb in range(len_entries):
                             if (entries[len_entries-nb-1])['status']:
                                 active.add(filename)
                                 break
                     else:
-                        for nbr in range(1):
+                        for nbr in range(last_time_active):
                             if (entries[len_entries-nbr-1])['status']:
                                 active.add(filename)
                                 break
