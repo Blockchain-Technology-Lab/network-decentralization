@@ -66,10 +66,8 @@ def get_output_directory(ledger=None, dead=False):
             subdir.mkdir()
 
     if dead:
-        output_dir = output_dir / "dead_nodes"
-        if not output_dir.is_dir():
-            output_dir.mkdir()
-        output_dir = output_dir / ledger
+        output_dir = output_dir / "dead_nodes" / ledger
+        output_dir.mkdir(parents=True, exist_ok=True)
         if not output_dir.is_dir():
             output_dir.mkdir()
         return output_dir
