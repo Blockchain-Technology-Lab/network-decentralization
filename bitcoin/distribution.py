@@ -15,10 +15,10 @@ def redistribute_tor_nodes(name, ledger, df):
         logging.info(f"No Tor nodes found in {ledger}.")
         return
 
-    tor_nodes = tor_row[date].values[0] # extract the number of Tor nodes for the given date
-    total_nodes_without_tor = df[df[f'{mode}'] != 'Tor'][f'{date}'].sum() # sum of node counts excluding the Tor row
-    total_nodes = total_nodes_without_tor + tor_nodes
-    df['Distribution'] = df.apply(lambda row: round((row[f'{date}'] / total_nodes_without_tor) * tor_nodes) if row[f'{mode}'] != 'Tor' else 0, axis=1) # create a new column 'Distribution' that distributes the Tor nodes proportionally to non-Tor rows
+    number_of_tor_nodes = tor_row[date].values[0] # extract the number of Tor nodes for the given date
+    number_of_total_nodes_without_tor = df[df[f'{mode}'] != 'Tor'][f'{date}'].sum() # sum of node counts excluding the Tor row
+    number_of_total_nodes = number_of_total_nodes_without_tor + number_of_tor_nodes
+    df['Distribution'] = df.apply(lambda row: round((row[f'{date}'] / number_of_total_nodes_without_tor) * number_of_tor_nodes) if row[f'{mode}'] != 'Tor' else 0, axis=1) # create a new column 'Distribution' that distributes the Tor nodes proportionally to non-Tor rows
     df[date] = df[date] + df['Distribution']
     df_without_tor = df[df[f'{mode}'] != 'Tor'] # filter out the Tor row
     df_without_tor[[mode, date]].to_csv(f'./output/{name}_{ledger}_without_tor.csv', index=False) # save the updated DataFrame to a new CSV
