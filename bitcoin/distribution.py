@@ -24,7 +24,7 @@ def redistribute_tor_nodes(name, ledger, df):
     df_without_tor[[mode, date]].to_csv(f'./output/{name}_{ledger}_without_tor.csv', index=False) # save the updated DataFrame to a new CSV
 
 
-def org_without_tor():
+def without_tor():
     """
     Loads a CSV file and calls the redistribute_tor_nodes function.
     """
@@ -43,7 +43,7 @@ mode = hlp.get_mode()
 date = hlp.get_date()
 
 def main():
-    org_without_tor()
+    without_tor()
 
 if __name__ == '__main__':
     main()
