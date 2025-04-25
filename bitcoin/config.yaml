@@ -6,6 +6,10 @@ ledgers:
   - litecoin
   - zcash
 
+mode: 'Countries'
+
+date: '2025-03-28'
+
 execution_parameters:
   concurrency: 100
 
