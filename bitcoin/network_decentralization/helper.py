@@ -34,6 +34,20 @@ def get_ledgers():
     arg)
     """
     return get_config_data()['ledgers']
+    
+def get_mode():
+    """
+    Retrieves data regarding the mode to use
+    :returns: the mode to be used by distribution.py
+    """
+    return get_config_data()['mode']
+
+def get_date():
+    """
+    Retrieves data regarding the date to use
+    :returns: the date to be used by distribution.py
+    """
+    return get_config_data()['date']
 
 def get_active():
     """
