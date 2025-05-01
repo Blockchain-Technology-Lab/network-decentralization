@@ -12,6 +12,12 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 
 def get_node_addresses(ledger, node_ip, node_port):
+    """
+    Connects to the node, retrieves information about it from received packets and updates the node's file.
+    :param ledger: the ledger of the node
+    :param node_ip: the ip address of the node
+    :param node_port: the port of the node
+    """
     network_types = {
         1: 'ipv4',
         2: 'ipv6',
@@ -62,6 +68,10 @@ def get_node_addresses(ledger, node_ip, node_port):
 
 
 def crawl_network(ledger):
+    """
+    Crawls the network. Connects to nodes to collect information about them. 
+    :param ledger: the ledger to crawl
+    """
     network_proto.MAGIC_NUMBER = MAGIC_NUMBERS[ledger]
     network_proto.PROTOCOL_VERSION = PROTOCOL_VERSIONS[ledger]
 
@@ -87,6 +97,10 @@ def crawl_network(ledger):
 
 
 def collect_geodata(ledger):
+    """
+    Retrieves the geolocation of the nodes.
+    :param ledger: the ledger of the nodes
+    """
     logging.info(f'{ledger} - Collecting geodata')
     filename = hlp.get_output_directory() / 'geodata' / f'{ledger}.json'
     try:
@@ -113,6 +127,14 @@ def collect_geodata(ledger):
 
 
 def get_os_info(node, osdata, ledger, all_nodes):
+    """
+    (not in use)
+    Retrieves the OS used by the node.
+    :param node: information on the node (e.g. ip address)
+    :param osdata: dictionary mapping node IP addresses to their OS information
+    :param ledger: the ledger of the node
+    :param all_nodes: total number of nodes
+    """
     node_ip = node[0]
     computed_percentage = 100*len(osdata) / all_nodes
     if node_ip not in osdata:
@@ -128,6 +150,12 @@ def get_os_info(node, osdata, ledger, all_nodes):
 
 
 def collect_osdata(ledger, timestamp=None):
+    """
+    (not in use)
+    Retrieves the OS used by nodes.
+    :param ledger: the ledger of the node
+    :param timestamp: optional, timestamp string to name the output file
+    """
 
     logging.info(f'{ledger} - Collecting osdata')
 
