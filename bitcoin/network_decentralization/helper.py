@@ -95,6 +95,16 @@ def get_output_directory(ledger=None, dead=False):
 
 
 def update_node(ledger, ip, port, version, addresses, protocol=0):
+    """
+    Writes the information collected about the node during the crawling phase to the corresponding file.
+    :param ledger: the ledger of the node
+    :param ip: the ip address of the node
+    :param port: the port of the node
+    :param version: the version of the node
+    :param addresses: the ip addresses sent by the node
+    :param protocol: optional, the protocol version used by the node
+    """
+
     output_dir = get_output_directory(ledger)
 
     try:
@@ -129,6 +139,11 @@ def update_node(ledger, ip, port, version, addresses, protocol=0):
 
 
 def get_last_days(days):
+    """
+    Retrieves the dates of the last few days.
+    :param days: the number of days
+    :returns: a set containing the dates of the last few days
+    """
     day = datetime.date.today()
     past_week = set()
     while len(past_week) < days:
@@ -138,6 +153,13 @@ def get_last_days(days):
 
 
 def get_nodes(ledger, reachable_only=False, time_window=0):
+    """
+    Retrieves nodes.
+    :param ledger: the ledger of the nodes
+    :param reachable_only: optional, boolean. If set then it returns only reachable nodes.
+    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date.
+    :returns: a set containing information on all corresponding nodes
+    """
     if time_window > 0:
         dates_in_time_window = get_last_days(time_window)
     output_dir = get_output_directory(ledger)
@@ -169,14 +191,31 @@ def get_nodes(ledger, reachable_only=False, time_window=0):
 
 
 def get_all_nodes(ledger, time_window=0):
+    """
+    Retrieves reachable and unreachable nodes.
+    :param ledger: the ledger of the nodes
+    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date.
+    :returns: a set containing information on all corresponding nodes
+    """
     return get_nodes(ledger, time_window)
 
 
 def get_reachable_nodes(ledger, time_window=0):
+    """
+    Retrieves reachable nodes.
+    :param ledger: the ledger of the nodes
+    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date.
+    :returns: a set containing information on all corresponding reachable nodes
+    """
     return get_nodes(ledger, True, time_window)
 
 
 def get_ipv6_nodes(ledger):
+    """
+    Retrieves IPV6 nodes.
+    :param ledger: the ledger of the nodes
+    :returns: a set containing IPV6 addresses.
+    """
     addresses = set()
     output_dir = get_output_directory(ledger)
     for filename in pathlib.Path(output_dir).iterdir():
@@ -191,6 +230,11 @@ def get_ipv6_nodes(ledger):
 
 
 def get_seed_nodes(ledger):
+    """
+    Retrieves the seed nodes from the seed_info folder.
+    :param ledger: the ledger of the nodes
+    :returns: a set containing the address and port of the seed nodes.
+    """
     with open(ROOT_DIR / f'seed_info/{ledger}.json') as f:
         seeds = json.load(f)
 
@@ -212,10 +256,21 @@ def get_seed_nodes(ledger):
 
 
 def get_known_nodes(ledger, time_window=0):
+    """
+    Retrieves known nodes.
+    :param ledger: the ledger of the nodes
+    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date.
+    :returns: a set containing information on all corresponding nodes
+    """
     return get_all_nodes(ledger, time_window).union(get_seed_nodes(ledger))
 
 
 def get_ip_geodata(ip_addr):
+    """
+    Retrieves the node geolocation using ip-api.com or api.ipapi.is.
+    :param ip_addr: the ip address of the node
+    :returns: geolocation information
+    """
     data = None
     while not data:
         r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
@@ -237,6 +292,12 @@ def get_ip_geodata(ip_addr):
 
 
 def get_os_info(ip_addr):
+    """
+    (not in use)
+    Retrieves information about the node's OS using nmap.
+    :param ip_addr: the ip address of the node
+    :returns: a list of possible os versions.
+    """
     nmap = nmap3.Nmap()
     os_info = nmap.nmap_os_detection(ip_addr)
     os_matches = []
