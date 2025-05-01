@@ -6,8 +6,15 @@ ledgers:
   - litecoin
   - zcash
 
+mode: 'Countries'
+
+date: '2025-03-28'
+
 execution_parameters:
   concurrency: 100
+
+# The number of packets to consider when cleaning up
+last_time_active: 1
 
 # Paths to directories of snapshot db files; either absolute or relative from run.py.
 # The first path will be used to write newly created dbs and the output of runs

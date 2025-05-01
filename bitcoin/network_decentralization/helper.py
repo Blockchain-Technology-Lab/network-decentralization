@@ -34,7 +34,27 @@ def get_ledgers():
     arg)
     """
     return get_config_data()['ledgers']
+    
+def get_mode():
+    """
+    Retrieves data regarding the mode to use
+    :returns: the mode to be used by distribution.py
+    """
+    return get_config_data()['mode']
 
+def get_date():
+    """
+    Retrieves data regarding the date to use
+    :returns: the date to be used by distribution.py
+    """
+    return get_config_data()['date']
+
+def get_active():
+    """
+    Retrieves data regarding the packets to clean up 
+    :returns: an integer that corresponds to the number of packets that will be used by cleanup_dead_nodes.py
+    """
+    return get_config_data()['last_time_active']
 
 def get_concurrency():
     """
@@ -44,7 +64,7 @@ def get_concurrency():
     return get_config_data()['execution_parameters']['concurrency']
 
 
-def get_output_directory(ledger=None):
+def get_output_directory(ledger=None, dead=False):
     """
     Reads the config file and retrieves the output directory
     :param ledger: optional, if set then it returns the subdirectory for the given ledger
@@ -59,6 +79,13 @@ def get_output_directory(ledger=None):
             subdir = output_dir / subdir_type
             subdir.mkdir()
 
+    if dead:
+        output_dir = output_dir / "dead_nodes" / ledger
+        output_dir.mkdir(parents=True, exist_ok=True)
+        if not output_dir.is_dir():
+            output_dir.mkdir()
+        return output_dir
+
     if ledger:
         output_dir = output_dir / ledger
         if not output_dir.is_dir():
@@ -67,17 +94,13 @@ def get_output_directory(ledger=None):
     return output_dir
 
 
-def update_node(ledger, ip, port, version, addresses):
+def update_node(ledger, ip, port, version, addresses, protocol=0):
     output_dir = get_output_directory(ledger)
 
     try:
         with open(output_dir / ip) as f:
             entries = json.load(f)
     except FileNotFoundError:
-        logging.info(f'FileNotFoundError: {filename}')
-        entries = []
-    except json.decoder.JSONDecodeError:
-        logging.info(f'JSONDecodeError: {filename}')
         entries = []
 
     if version is None:
@@ -93,6 +116,7 @@ def update_node(ledger, ip, port, version, addresses):
         'date': datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S'),
         'port': port,
         'version': version,
+        'protocol': protocol,
         'status': status,
         'addresses': [list(addr) for addr in addresses],
     })
@@ -126,17 +150,21 @@ def get_nodes(ledger, reachable_only=False, time_window=0):
         if filename.is_file():
             with open(filename) as f:
                 entries = json.load(f)
-                for entry in entries:
+                for entry in reversed(entries):
                     if entry['status'] and ((time_window == 0) or (time_window > 0 and entry['date'].split()[0] in dates_in_time_window)):
                         node_ip = str(filename).split('/')[-1]
                         node_port = entry['port']
                         node_version = entry['version']
-                        nodes.add((node_ip, node_port, node_version))
+                        try:
+                            node_protocol = entry['protocol']
+                        except KeyError:
+                            node_protocol = 0
+                        nodes.add((node_ip, node_port, node_version, node_protocol))
                         if reachable_only:
                             break
                         else:
                             for addr in entry['addresses']:
-                                nodes.add((addr[0], addr[1], node_version))
+                                nodes.add((addr[0], addr[1], node_version, node_protocol))
     return nodes
 
 
@@ -193,6 +221,11 @@ def get_ip_geodata(ip_addr):
         r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
         try:
             data = r.json()
+            if not data.get('org') and data.get('as'):
+                data['org'] = data['as'][data['as'].find(' ')+1:]
+            if not data.get('org') or not data.get('country'):
+                new_r = requests.get(f'https://api.ipapi.is/?q={ip_addr}') # Max 1000 HTTP requests per day
+                data = new_r.json()
             if 'error' in data:
                 data = None
         except requests.exceptions.JSONDecodeError:

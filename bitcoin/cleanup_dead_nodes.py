@@ -8,6 +8,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 def main():
     LEDGERS = hlp.get_ledgers()
+    last_time_active = hlp.get_active()
 
     for ledger in LEDGERS:
         active = set()
@@ -21,21 +22,24 @@ def main():
                 with open(filename) as f:
                     entries = json.load(f)
                     len_entries = len(entries)
-                    if len_entries < 7:
+                    if len_entries < last_time_active:
                         for nb in range(len_entries):
                             if (entries[len_entries-nb-1])['status']:
                                 active.add(filename)
                                 break
                     else:
-                        for nbr in range(7):
+                        for nbr in range(last_time_active):
                             if (entries[len_entries-nbr-1])['status']:
                                 active.add(filename)
                                 break
         non_active = set(filenames) - active
         logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(active):,} active nodes')
         logging.info(f'cleanup_dead_nodes.py: {ledger} - {len(non_active):,} never active nodes')
-        for filename in non_active:
-            os.remove(filename)
+        for filename in non_active: # move inactive node files to dead_nodes folder
+            f_name = os.path.basename(filename)
+            new_path = hlp.get_output_directory(ledger, True) / f_name
+            os.rename(filename, new_path)
+
 
 if __name__ == '__main__':
     main()
