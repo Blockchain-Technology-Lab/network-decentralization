@@ -13,6 +13,9 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 
 def network_edges():
+    """
+    Parses node connection data from the past 7 days and constructs a network edge list for each ledger, saving the results as CSV files.
+    """
     network_edge_dir = hlp.get_output_directory() / 'network_edges'
     if not network_edge_dir.is_dir():
         network_edge_dir.mkdir()
@@ -50,6 +53,10 @@ def network_edges():
 
 
 def ip_type(reachable_nodes):
+    """
+    Classifies nodes by IP address type (IPv4, IPv6, .onion) and saves the results to a CSV file.
+    :param reachable_nodes: dictionary mapping each ledger to nodes information
+    """
     output_data = [['ledger', 'ipv4', 'ipv6', 'onion']]
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} ip types')
@@ -71,6 +78,9 @@ def ip_type(reachable_nodes):
 
 
 def response_length():
+    """
+    Analyses the average number of addresses returned by each node. The results are saved in a JSON file.
+    """
     output = {}
 
     for ledger in LEDGERS:
@@ -109,6 +119,9 @@ def response_length():
 
 
 def convergence():
+    """
+    Determines convergence behaviour for each node based on the uniqueness of addresses received over time. Results are saved in a JSON file.
+    """
     CONVERGENCE_PARAM = 0.1
 
     output = {}
@@ -156,6 +169,13 @@ def convergence():
 
 
 def get_geodata(ledger, reachable_nodes, mode):
+    """
+    Groups reachable nodes by geolocation information.
+    :param ledger: the ledger to analyse
+    :param reachable_nodes: dictionary mapping ledger names to nodes information
+    :param mode: Grouping mode: 1 for country, 2 for ASN, 3 for organisation
+    :return: dictionary grouping node IPs under corresponding geographic/organisational keys.
+    """
     output_dir = hlp.get_output_directory() / 'geodata'
     countries = defaultdict(list)
 
@@ -194,6 +214,11 @@ def get_geodata(ledger, reachable_nodes, mode):
 
 
 def geography(reachable_nodes, mode):
+    """
+    Analyses geographic or organisational distribution of nodes
+    :param reachable_nodes: dictionary mapping each ledger to nodes information
+    :param mode: Grouping mode: 1 for country, 3 for organisation
+    """
     name = ''
     if mode == 1:
         name = 'Countries'
@@ -234,6 +259,10 @@ def geography(reachable_nodes, mode):
 
 
 def network(reachable_nodes):
+    """
+    Groups nodes by ASN and writes the counts to a CSV file.
+    :param reachable_nodes: dictionary mapping each ledger to nodes information
+    """
     for ledger in LEDGERS:
         logging.info(f'Analyzing {ledger} network')
         countries = get_geodata(ledger, reachable_nodes, 2)
@@ -246,6 +275,11 @@ def network(reachable_nodes):
 
 
 def version(reachable_nodes, mode):
+    """
+    Analyses and records the distribution of client or protocol versions used by nodes.
+    :param reachable_nodes: dictionary mapping ledgers to nodes info.
+    :param mode: 1 for client versions, 2 for protocol versions.
+    """
     name = ''
     if mode == 1:
         name = 'Clients'
