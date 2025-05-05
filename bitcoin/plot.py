@@ -10,6 +10,9 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 
 def network_edges():
+    """
+    Generates network graphs using edge lists from CSV files.
+    """
     logging.info('Plotting edge graphs')
 
     for ledger in LEDGERS:
@@ -47,6 +50,10 @@ def network_edges():
 
 
 def geo_plot(plot_type):
+    """
+    Generates pie charts representing node distribution by a given category
+    :param plot_type: Geography, ASN, or Org
+    """
     for ledger in LEDGERS:
         logging.info(f'Plotting {ledger} {plot_type}')
         entries = []
@@ -81,6 +88,9 @@ def geo_plot(plot_type):
         plt.close(fig)
 
 def version_plot():
+    """
+    Generates pie charts showing the distribution of client versions
+    """
     for ledger in LEDGERS:
         logging.info(f'Plotting {ledger} version')
         entries = []
@@ -115,6 +125,9 @@ def version_plot():
         plt.close(fig)
 
 def ip_type_plot():
+    """
+    Generates a bar chart of node IP address types (IPv4, IPv6, onion)
+    """
     logging.info('Plotting by ip type')
 
     with open('output/ip_type.csv') as f:
@@ -158,6 +171,9 @@ def ip_type_plot():
     plt.close(fig)
 
 def response_length_plot():
+    """
+    Generates bar charts showing the distribution of response lengths (number of addresses in response)
+    """
     logging.info('Plotting by response length')
 
     with open('output/response_length.json') as f:
