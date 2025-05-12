@@ -140,7 +140,7 @@ def update_node(ledger, ip, port, version, addresses, protocol=0):
 
 def get_last_days(days):
     """
-    Retrieves the dates of the last few days.
+    Retrieves the dates of the last few days. Used by the get_nodes function to retrieve last X days nodes.
     :param days: the number of days
     :returns: a set containing the dates of the last few days
     """
@@ -157,7 +157,7 @@ def get_nodes(ledger, reachable_only=False, time_window=0):
     Retrieves nodes.
     :param ledger: the ledger of the nodes
     :param reachable_only: optional, boolean. If set then it returns only reachable nodes.
-    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date.
+    :param time_window: optional, the number of days. If equals to 0, it returns all the nodes, regardless of the date. Otherwise, returns last X days nodes.
     :returns: a set containing information on all corresponding nodes
     """
     if time_window > 0:
