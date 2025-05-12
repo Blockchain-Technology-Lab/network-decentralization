@@ -73,6 +73,7 @@ JSON files in the `seed_info/` folder define initial peers or DNS seeds for all 
 
 ## Requirements
 
+Python 3.9 or higher is required.
 Install dependencies with:
 
 ```bash
