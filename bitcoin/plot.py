@@ -5,6 +5,7 @@ import csv
 import json
 import networkx as nx
 import logging
+import time
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -48,20 +49,24 @@ def network_edges():
 
         logging.info(f'{ledger} - finished')
 
-
 def geo_plot(plot_type):
     """
     Generates pie charts representing node distribution by a given category
     :param plot_type: Geography, ASN, or Org
     """
+    if 'bitcoin' in LEDGERS:
+        LEDGERS.append('bitcoin_without_tor')
     for ledger in LEDGERS:
         logging.info(f'Plotting {ledger} {plot_type}')
         entries = []
-        with open(f'output/{plot_type.lower()}_{ledger}.csv') as f:
-            csv_reader = csv.reader(f)
-            next(csv_reader)
-            for line in csv_reader:
-                entries.append([line[0], int(line[1])])
+        try:
+            with open(f'output/{plot_type.lower()}_{ledger}.csv') as f:
+                csv_reader = csv.reader(f)
+                next(csv_reader)
+                for line in csv_reader:
+                    entries.append([line[0], int(line[1])])
+        except FileNotFoundError:
+            continue
 
         total_nodes = sum([i[1] for i in entries])
 
@@ -203,15 +208,18 @@ def response_length_plot():
         plt.close(fig)
 
 LEDGERS = hlp.get_ledgers()
+MODES = hlp.get_mode()
 
 def main():
-    geo_plot('Geography')
-    geo_plot('ASN')
-    geo_plot('Org')
-    ip_type_plot()
-    version_plot()
-  # network_edges()
-    response_length_plot()
+    for mode in MODES:
+        geo_plot(mode)
+
+#    geo_plot('ASN')
+#    ip_type_plot()
+#    version_plot()
+#    network_edges()
+#    response_length_plot()
+
 
 if __name__ == '__main__':
     main()
