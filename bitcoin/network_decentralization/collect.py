@@ -7,6 +7,7 @@ import time
 from itertools import repeat
 import multiprocessing
 import logging
+import os
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -29,7 +30,7 @@ def get_node_addresses(ledger, node_ip, node_port):
     if node_ip.endswith('onion'):
         proxy = ('127.0.0.1', 9050)
 
-    version, protocol, addresses = None, None, set()
+    version, addresses = None, set()
     try:
         if proxy:
             conn = network_proto.Connection((node_ip, node_port), proxy=proxy)
@@ -37,10 +38,12 @@ def get_node_addresses(ledger, node_ip, node_port):
             conn = network_proto.Connection((node_ip, node_port))
         conn.open()
         version_msg = conn.handshake()
+#        logging.info(f'Version message (handshake): {version_msg}')
         version = version_msg['user_agent']
         protocol = version_msg['version']
 
         addr_msgs = conn.getaddr()
+#        logging.info(f'Address messages (getaddr): {addr_msgs}')
         conn.ping()
 
         if addr_msgs:
@@ -64,7 +67,7 @@ def get_node_addresses(ledger, node_ip, node_port):
     finally:
         conn.close()
 
-    hlp.update_node(ledger, node_ip, node_port, version, addresses, protocol)
+    hlp.update_node(ledger, node_ip, node_port, version, protocol, addresses)
 
 
 def crawl_network(ledger):
@@ -107,7 +110,9 @@ def collect_geodata(ledger):
         with open(filename) as f:
             geodata = json.load(f)
     except FileNotFoundError:
-        logging.info(f'FileNotFoundError: {filename}')
+#        logging.info(f'FileNotFoundError: {filename}')
+        if not os.path.isdir(hlp.get_output_directory() / 'geodata'):
+            os.mkdir(hlp.get_output_directory() / 'geodata')
         geodata = {}
     except json.decoder.JSONDecodeError:
         logging.info(f'JSONDecodeError: {filename}')
