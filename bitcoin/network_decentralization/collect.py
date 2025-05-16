@@ -30,7 +30,7 @@ def get_node_addresses(ledger, node_ip, node_port):
     if node_ip.endswith('onion'):
         proxy = ('127.0.0.1', 9050)
 
-    version, addresses = None, set()
+    version, protocol, addresses = None, None, set()
     try:
         if proxy:
             conn = network_proto.Connection((node_ip, node_port), proxy=proxy)
@@ -38,12 +38,10 @@ def get_node_addresses(ledger, node_ip, node_port):
             conn = network_proto.Connection((node_ip, node_port))
         conn.open()
         version_msg = conn.handshake()
-#        logging.info(f'Version message (handshake): {version_msg}')
         version = version_msg['user_agent']
         protocol = version_msg['version']
 
         addr_msgs = conn.getaddr()
-#        logging.info(f'Address messages (getaddr): {addr_msgs}')
         conn.ping()
 
         if addr_msgs:
@@ -67,7 +65,7 @@ def get_node_addresses(ledger, node_ip, node_port):
     finally:
         conn.close()
 
-    hlp.update_node(ledger, node_ip, node_port, version, protocol, addresses)
+    hlp.update_node(ledger, node_ip, node_port, version, addresses, protocol)
 
 
 def crawl_network(ledger):
