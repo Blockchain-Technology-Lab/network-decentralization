@@ -5,7 +5,6 @@ import csv
 import json
 import networkx as nx
 import logging
-import time
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -66,6 +65,7 @@ def geo_plot(plot_type):
                 for line in csv_reader:
                     entries.append([line[0], int(line[1])])
         except FileNotFoundError:
+            logging.info(f'plot.py: FileNotFoundError: output/{plot_type.lower()}_{ledger}.csv')
             continue
 
         total_nodes = sum([i[1] for i in entries])
@@ -213,13 +213,6 @@ MODES = hlp.get_mode()
 def main():
     for mode in MODES:
         geo_plot(mode)
-
-#    geo_plot('ASN')
-#    ip_type_plot()
-#    version_plot()
-#    network_edges()
-#    response_length_plot()
-
 
 if __name__ == '__main__':
     main()
