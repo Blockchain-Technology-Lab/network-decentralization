@@ -10,7 +10,7 @@ python3 cleanup_dead_nodes.py
 python3 collect_geodata.py
 #python3 collect_osdata.py # not in use
 python3 parse.py
-python3 distribution.py # called only if the Bitcoin ledger is selected
+python3 distribution.py
 python3 plot.py
 
 # The following 2 lines create a folder and move all png and csv files to it
