@@ -108,7 +108,6 @@ def collect_geodata(ledger):
         with open(filename) as f:
             geodata = json.load(f)
     except FileNotFoundError:
-#        logging.info(f'FileNotFoundError: {filename}')
         if not os.path.isdir(hlp.get_output_directory() / 'geodata'):
             os.mkdir(hlp.get_output_directory() / 'geodata')
         geodata = {}
