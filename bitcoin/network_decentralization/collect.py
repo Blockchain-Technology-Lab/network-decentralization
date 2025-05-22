@@ -7,6 +7,7 @@ import time
 from itertools import repeat
 import multiprocessing
 import logging
+import os
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -107,7 +108,8 @@ def collect_geodata(ledger):
         with open(filename) as f:
             geodata = json.load(f)
     except FileNotFoundError:
-        logging.info(f'FileNotFoundError: {filename}')
+        if not os.path.isdir(hlp.get_output_directory() / 'geodata'):
+            os.mkdir(hlp.get_output_directory() / 'geodata')
         geodata = {}
     except json.decoder.JSONDecodeError:
         logging.info(f'JSONDecodeError: {filename}')

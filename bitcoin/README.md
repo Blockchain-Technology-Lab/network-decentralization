@@ -1,6 +1,10 @@
 # Network decentralisation
 
-This component of the project analyses the decentralisation of Bitcoin, Bitcoin Cash, Dogecoin, Litecoin and Zcash networks by exploring them, collecting information about participating nodes and visualising this information through different graphs.
+This component of the project analyses the decentralisation of Bitcoin, Bitcoin Cash, Dogecoin, Litecoin and Zcash networks by exploring them, collecting information about participating nodes and visualising this information through different graphs. To run it, run:
+```bash
+./automation.sh
+```
+`automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'venv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
 
 ---
 

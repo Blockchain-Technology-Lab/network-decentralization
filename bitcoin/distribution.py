@@ -1,14 +1,17 @@
+# This script is only used for the Bitcoin ledger. If the Bitcoin ledger is not selected in the config.yaml file, this script does nothing.
+
 import network_decentralization.helper as hlp
 import logging
 import pandas as pd
 from pathlib import Path
 
-def redistribute_tor_nodes(name, ledger, df):
+def redistribute_tor_nodes(name, ledger, df, mode):
     """
     Redistributes Tor node count proportionally across non-Tor rows.
     :param name: lowercase version of the mode ('countries' or 'organizations') used in file naming.
     :param ledger: the ledger name.
     :param df: the dataframe in which the Tor nodes must be reditributed.
+    :param mode: Countries or Organizations.
     """
     tor_row = df[df[mode] == 'Tor']
     if tor_row.empty:
@@ -28,7 +31,8 @@ def without_tor():
     """
     Loads a CSV file and calls the redistribute_tor_nodes function.
     """
-    for ledger in LEDGERS:
+    ledger = 'bitcoin'
+    for mode in MODES:
         logging.info(f'distribution.py: Removing Tor from {ledger} {mode}')
         name = mode.lower()
         filename = Path(f'./output/{name}_{ledger}.csv')
@@ -36,14 +40,15 @@ def without_tor():
             logging.warning(f"File not found: {filename}")
             return None
         df = pd.read_csv(filename)
-        redistribute_tor_nodes(name, ledger, df)
-   
-LEDGERS = hlp.get_ledgers()
-mode = hlp.get_mode()
+        redistribute_tor_nodes(name, ledger, df, mode)
+
+LEDGERS = hlp.get_ledgers()   
+MODES = hlp.get_mode()
 date = hlp.get_date()
 
 def main():
-    without_tor()
+    if 'bitcoin' in LEDGERS:
+        without_tor()
 
 if __name__ == '__main__':
     main()

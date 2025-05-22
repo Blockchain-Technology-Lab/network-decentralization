@@ -6,8 +6,11 @@ ledgers:
   - litecoin
   - zcash
 
-mode: 'Countries'
+mode:
+  - Countries
+  - Organizations
 
+# Used by distribution.py to know which column to distribute
 date: '2025-03-28'
 
 execution_parameters:
