@@ -5,10 +5,8 @@ from pathlib import Path
 import network_decentralization.helper as hlp
 from collections import defaultdict
 import logging
-import time
 import pandas as pd
 from datetime import datetime
-from collections import defaultdict
 
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
@@ -175,7 +173,7 @@ def get_geodata(ledger, reachable_nodes, mode):
     Groups reachable nodes by geolocation information.
     :param ledger: the ledger to analyse
     :param reachable_nodes: dictionary mapping ledger names to nodes information
-    :param mode: Grouping mode: country, ASN or organisation
+    :param mode: Grouping mode: 'Countries', 'ASN' or 'Organisations'
     :return: dictionary grouping node IPs under corresponding geographic/organisational keys.
     """
     output_dir = hlp.get_output_directory() / 'geodata'
@@ -220,7 +218,7 @@ def geography(reachable_nodes, ledger, mode):
     Analyses geographic or organisational distribution of nodes
     :param reachable_nodes: dictionary mapping each ledger to nodes information
     :param ledger: the ledger to analyse
-    :param mode: Grouping mode: country or organisation
+    :param mode: Grouping mode: 'Countries' or 'Organisations'
     """
     logging.info(f'parse.py: Analyzing {ledger} {mode}')
     geodata = get_geodata(ledger, reachable_nodes, mode)
@@ -230,7 +228,7 @@ def geography(reachable_nodes, ledger, mode):
     for key, val in sorted(geodata.items(), key=lambda x: len(x[1]), reverse=True):
         if key:
             geodata_counter[key] = len(val)
-        else:
+        else: # if the API used for the IP addresses doesn't return any value for the country or the organisation
             geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
 
     filename = Path(f'./output/{mode.lower()}_{ledger}.csv')
@@ -349,7 +347,7 @@ def cluster_organizations(ledger):
             count = int(row[1])
             name = row[0].replace('"','').replace(',', '')
 
-            # Special rule for Hetzner-related entries
+            # Special rule for specific entries
             if 'hetzner' in name.lower():
                 first_word = 'Hetzner'
             elif 'netcup' in name.lower(): 
@@ -391,16 +389,6 @@ def main():
             geography(reachable_nodes, ledger, mode)
         if 'Organizations' in MODES:
             cluster_organizations(ledger)
-
-#    network(reachable_nodes)
-#    ip_type(reachable_nodes)
-#    version(reachable_nodes, 1)
-#    version(reachable_nodes, 2)
-
-#    convergence()
-#    response_length()
-
-#    network_edges()
 
 if __name__ == '__main__':
     main()
