@@ -4,7 +4,7 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 ```bash
 ./automation.sh
 ```
-Parameters can be modified in `config.yaml`.
+`automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'venv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
 
 ---
 
