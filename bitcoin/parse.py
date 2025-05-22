@@ -28,7 +28,7 @@ def network_edges():
         edges = set()
         logging.info(f'Parsing {ledger} graph edges')
         output_dir = hlp.get_output_directory(ledger)
-        filenames = list(pathlib.Path(output_dir).iterdir())
+        filenames = list(Path(output_dir).iterdir())
         for idx, filename in enumerate(filenames):
             print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
             node_ip = str(filename).split('/')[-1]
@@ -88,7 +88,7 @@ def response_length():
         output_dir = hlp.get_output_directory(ledger)
 
         response_length = defaultdict(list)
-        filenames = list(pathlib.Path(output_dir).iterdir())
+        filenames = list(Path(output_dir).iterdir())
         for idx, filename in enumerate(filenames):
             print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
             node_ip = str(filename).split('/')[-1]
@@ -131,7 +131,7 @@ def convergence():
         output_dir = hlp.get_output_directory(ledger)
 
         convergence = defaultdict(list)
-        filenames = list(pathlib.Path(output_dir).iterdir())
+        filenames = list(Path(output_dir).iterdir())
         for idx, filename in enumerate(filenames):
             print(f'{ledger} - parsed {idx:,}/{len(filenames):,} files ({100*idx/len(filenames):.2f}%)', end='\r')
             node_ip = str(filename).split('/')[-1]
