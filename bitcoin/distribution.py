@@ -1,3 +1,5 @@
+# This script is only used for the Bitcoin ledger. If the Bitcoin ledger is not selected in the config.yaml file, this script does nothing.
+
 import network_decentralization.helper as hlp
 import logging
 import pandas as pd
@@ -30,7 +32,7 @@ def without_tor():
     Loads a CSV file and calls the redistribute_tor_nodes function.
     """
     ledger = 'bitcoin'
-    for mode in modes:
+    for mode in MODES:
         logging.info(f'distribution.py: Removing Tor from {ledger} {mode}')
         name = mode.lower()
         filename = Path(f'./output/{name}_{ledger}.csv')
@@ -40,12 +42,12 @@ def without_tor():
         df = pd.read_csv(filename)
         redistribute_tor_nodes(name, ledger, df, mode)
 
-ledgers = hlp.get_ledgers()   
-modes = hlp.get_mode()
+LEDGERS = hlp.get_ledgers()   
+MODES = hlp.get_mode()
 date = hlp.get_date()
 
 def main():
-    if 'bitcoin' in ledgers:
+    if 'bitcoin' in LEDGERS:
         without_tor()
 
 if __name__ == '__main__':
