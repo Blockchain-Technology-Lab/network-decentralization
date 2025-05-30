@@ -1,5 +1,3 @@
-#import network_decentralization.protocol as network_proto
-#from network_decentralization.constants import MAGIC_NUMBERS, PROTOCOL_VERSIONS
 import helper as hlp
 import socket
 import json
@@ -11,7 +9,7 @@ import logging
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
 
-def collect_geodata():
+def collect_geodata(layers):
     logging.info(f'Collecting geodata')
     filename = hlp.get_output_directory() / f'geodata.json'
     try:
@@ -24,7 +22,7 @@ def collect_geodata():
         logging.info(f'JSONDecodeError: {filename}')
         geodata = {}
 
-    nodes = hlp.get_nodes()
+    nodes = hlp.get_nodes(layers)
     logging.info(f'Got {len(nodes)} nodes')
     for node in nodes:
         node_ip = node[0]
