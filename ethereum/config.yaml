@@ -1,10 +1,11 @@
-# The ledgers for which an analysis should be performed.
-ledgers:
-#  - bitcoin
-#  - bitcoin_cash
-#  - dogecoin
-  - litecoin
-#  - zcash
+# The layers for which an analysis should be performed.
+layers:
+  - Consensus
+  - Execution
+
+mode:
+  - Countries
+  - Organizations
 
 execution_parameters:
   concurrency: 100
@@ -12,4 +13,4 @@ execution_parameters:
 # Paths to directories of snapshot db files; either absolute or relative from run.py.
 # The first path will be used to write newly created dbs and the output of runs
 output_directories:  
-  - ./results
+  - ./output
