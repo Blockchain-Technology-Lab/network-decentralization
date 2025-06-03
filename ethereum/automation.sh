@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source newvenv/bin/activate # newvenv is the Python virtual environment where all dependencies must be installed
+source venv/bin/activate # venv is the Python virtual environment where all dependencies must be installed
 
 BOOTNODE="enr:-Ku4QHqVeJ8PPICcWk1vSn_XcSkjOkNiTg6Fmii5j6vUQgvzMc9L1goFnLKgXqBJspJjIsB91LTOleFmyWWrFVATGngBh2F0dG5ldHOIAAAAAAAAAACEZXRoMpC1MD8qAAAAAP__________gmlkgnY0gmlwhAMRHkWJc2VjcDI1NmsxoQKLVXFOhp2uX6jeT0DvvDpPcU8FWMjQdR4wMuORMhpX24N1ZHCCIyg"
 
