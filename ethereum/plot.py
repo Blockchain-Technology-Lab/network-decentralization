@@ -1,9 +1,6 @@
 import helper as hlp
 import matplotlib.pyplot as plt
-import numpy as np
 import csv
-import json
-import networkx as nx
 import logging
 import time
 
@@ -11,6 +8,11 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 
 def geo_plot(plot_type, layer):
+    """
+    Generates pie charts representing node distribution by a given category
+    :param plot_type: Countries or Organizations
+    :param layer: Consensus or Execution
+    """
     logging.info(f'Plotting {plot_type} - {layer}')
     entries = []
     output_dir = hlp.get_output_directory()
