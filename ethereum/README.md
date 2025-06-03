@@ -4,7 +4,7 @@ This component of the project analyses the decentralisation of the Ethereum netw
 ```bash
 ./automation.sh
 ```
-`automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'newvenv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
+`automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'venv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
 
 ---
 
