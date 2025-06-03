@@ -60,9 +60,9 @@ def get_layer(line):
     :param line: a line of peerstore.csv
     :returns: a layer
     """
-    if ' eth2:' in line:
+    if 'eth2:' in line:
         return 'Consensus'
-    elif ' eth:' in line:
+    elif 'eth:' in line:
         return 'Execution'
     else:
         return "Unknown"
