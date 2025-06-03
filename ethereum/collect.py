@@ -11,8 +11,8 @@ def collect_geodata(layers):
     Retrieves the geolocation of the nodes.
     :param layers: the layers of the nodes
     """
-    logging.info(f'Collecting geodata')
-    filename = hlp.get_output_directory() / f'geodata.json'
+    logging.info('Collecting geodata')
+    filename = hlp.get_output_directory() / 'geodata.json'
     try:
         with open(filename) as f:
             geodata = json.load(f)
