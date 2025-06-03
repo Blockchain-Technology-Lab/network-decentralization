@@ -10,7 +10,5 @@ mode:
 execution_parameters:
   concurrency: 100
 
-# Paths to directories of snapshot db files; either absolute or relative from run.py.
-# The first path will be used to write newly created dbs and the output of runs
 output_directories:  
   - ./output
