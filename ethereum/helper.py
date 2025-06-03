@@ -1,12 +1,9 @@
-import shutil
-import datetime
 from yaml import safe_load
 import json
 import pathlib
 import requests
 import time
 import logging
-import pandas as pd
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -18,8 +15,7 @@ with open("config.yaml") as f:
 
 def get_config_data():
     """
-    Reads the configuration data of the project. This data is read from a file named "config.yaml" located at the
-    root directory of the project.
+    Reads the configuration data of the project. This data is read from a file named "config.yaml" located at the root directory of the project.
     :returns: a dictionary of configuration keys and values
     """
     return config
@@ -58,16 +54,12 @@ def get_output_directory():
     return output_dir
 
 
-def get_last_days(days):
-    day = datetime.date.today()
-    past_week = set()
-    while len(past_week) < days:
-        past_week.add(day.strftime('%d/%m/%Y'))
-        day -= datetime.timedelta(1)
-    return past_week
-
-
 def get_layer(line):
+    """
+    Retrieves the layer in the given line
+    :param line: a line of peerstore.csv
+    :returns: a layer
+    """
     if ' eth2:' in line:
         return 'Consensus'
     elif ' eth:' in line:
@@ -76,9 +68,12 @@ def get_layer(line):
         return "Unknown"
 
 
-def get_nodes(layers, time_window=0):
-    if time_window > 0:
-        dates_in_time_window = get_last_days(time_window)
+def get_nodes(layers):
+    """
+    Retrieves nodes.
+    :param layers: the layer(s) of the nodes
+    :returns: a set containing information on all corresponding nodes
+    """
     filename = get_output_directory() / 'peerstore.csv'
     nodes = set()
 
@@ -91,10 +86,15 @@ def get_nodes(layers, time_window=0):
                     node_ip = values[2][:values[2].rfind(":")]
                     node_port = values[2][values[2].rfind(":")+1:]
                     nodes.add((node_ip, node_port))
-#                logging.info(f'ip: {node_ip} port: {node_port}')
     return nodes
 
+
 def get_ip_geodata(ip_addr):
+    """
+    Retrieves the node geolocation using ip-api.com or api.ipapi.is.
+    :param ip_addr: the ip address of the node
+    :returns: geolocation information
+    """
     data = None
     while not data:
         r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
