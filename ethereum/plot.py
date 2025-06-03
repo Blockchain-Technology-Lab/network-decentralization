@@ -2,7 +2,6 @@ import helper as hlp
 import matplotlib.pyplot as plt
 import csv
 import logging
-import time
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
