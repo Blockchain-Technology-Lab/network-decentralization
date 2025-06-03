@@ -1,15 +1,16 @@
 import helper as hlp
-import socket
 import json
 import time
-from itertools import repeat
-import multiprocessing
 import logging
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
 
 def collect_geodata(layers):
+    """
+    Retrieves the geolocation of the nodes.
+    :param layers: the layers of the nodes
+    """
     logging.info(f'Collecting geodata')
     filename = hlp.get_output_directory() / f'geodata.json'
     try:
