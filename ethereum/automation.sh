@@ -17,8 +17,8 @@ python3 parse.py
 python3 plot.py
 
 # The following 2 lines create a folder and move all png and csv files to it
-mkdir "$OUTPUTDIR"/"$(date +%d-%m-%y)"
-mv -t "$OUTPUTDIR"/"$(date +%d-%m-%y)" output/*.png output/*.csv
+mkdir "$OUTPUTDIR"/"$(date +%Y-%m-%d)"
+mv -t "$OUTPUTDIR"/"$(date +%Y-%m-%d)" output/*.png output/*.csv
 
 sleep 7d # will repeat the whole process every X days
 
