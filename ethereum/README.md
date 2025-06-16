@@ -1,10 +1,35 @@
 # Network decentralisation
 
-This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. To run it, run:
+This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. To run the tool, please see the 'Requirements' section, then use the following command:
 ```bash
 ./automation.sh
 ```
 `automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'venv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
+
+---
+
+## Requirements
+
+Python 3.9 or higher is required. You also need `git`, a C compiler and `make`.
+
+To clone this repository, please use:
+```bash
+git clone --recurse-submodules git@github.com:Blockchain-Technology-Lab/network-decentralization.git
+```
+Then, to download Nim dependencies and build the crawler, in the 'ethereum' folder, run:
+```bash
+make -j4 update
+make -j4
+```
+Please note that it may take some time.  
+Install Python dependencies - preferably in a Python virtual environment - using:
+```bash
+python3 -m pip install -r requirements.txt
+```
+Also, you may need to change the permissions of the automation file:
+```bash
+chmod +x automation.sh
+```
 
 ---
 
@@ -51,17 +76,6 @@ This component of the project analyses the decentralisation of the Ethereum netw
 
 ---
 
-## Requirements
-
-Python 3.9 or higher is required.
-Install dependencies with:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
----
-
 ## Output
 
 The scripts generate:
@@ -91,4 +105,7 @@ ethereum/
 ├── LICENSE
 ├── README.md
 ├── Makefile
+│
+└── vendor/
+    └── *all submodules*
 ```
