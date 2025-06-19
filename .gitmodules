@@ -1,0 +1,54 @@
+[submodule "ethereum/submodules/nim-bearssl"]
+	path = ethereum/submodules/nim-bearssl
+	url = https://github.com/status-im/nim-bearssl
+[submodule "ethereum/submodules/nim-chronicles"]
+	path = ethereum/submodules/nim-chronicles
+	url = https://github.com/status-im/nim-chronicles
+[submodule "ethereum/submodules/nim-chronos"]
+	path = ethereum/submodules/nim-chronos
+	url = https://github.com/status-im/nim-chronos
+[submodule "ethereum/submodules/nim-confutils"]
+	path = ethereum/submodules/nim-confutils
+	url = https://github.com/status-im/nim-confutils
+[submodule "ethereum/submodules/nim-eth"]
+	path = ethereum/submodules/nim-eth
+	url = https://github.com/status-im/nim-eth
+[submodule "ethereum/submodules/nim-faststreams"]
+	path = ethereum/submodules/nim-faststreams
+	url = https://github.com/status-im/nim-faststreams
+[submodule "ethereum/submodules/nim-http-utils"]
+	path = ethereum/submodules/nim-http-utils
+	url = https://github.com/status-im/nim-http-utils
+[submodule "ethereum/submodules/nim-json-serialization"]
+	path = ethereum/submodules/nim-json-serialization
+	url = https://github.com/status-im/nim-json-serialization
+[submodule "ethereum/submodules/nim-metrics"]
+	path = ethereum/submodules/nim-metrics
+	url = https://github.com/status-im/nim-metrics
+[submodule "ethereum/submodules/nim-minilru"]
+	path = ethereum/submodules/nim-minilru
+	url = https://github.com/status-im/nim-minilru
+[submodule "ethereum/submodules/nim-nat-traversal"]
+	path = ethereum/submodules/nim-nat-traversal
+	url = https://github.com/status-im/nim-nat-traversal
+[submodule "ethereum/submodules/nim-secp256k1"]
+	path = ethereum/submodules/nim-secp256k1
+	url = https://github.com/status-im/nim-secp256k1
+[submodule "ethereum/submodules/nim-serialization"]
+	path = ethereum/submodules/nim-serialization
+	url = https://github.com/status-im/nim-serialization
+[submodule "ethereum/submodules/nim-stew"]
+	path = ethereum/submodules/nim-stew
+	url = https://github.com/status-im/nim-stew
+[submodule "ethereum/submodules/nim-stint"]
+	path = ethereum/submodules/nim-stint
+	url = https://github.com/status-im/nim-stint
+[submodule "ethereum/submodules/nimbus-build-system"]
+	path = ethereum/submodules/nimbus-build-system
+	url = https://github.com/status-im/nimbus-build-system
+[submodule "ethereum/submodules/nimcrypto"]
+	path = ethereum/submodules/nimcrypto
+	url = https://github.com/status-im/nimcrypto
+[submodule "ethereum/submodules/nim-results"]
+	path = ethereum/submodules/nim-results
+	url = https://github.com/arnetheduck/nim-results
