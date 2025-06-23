@@ -10,7 +10,7 @@ OUTPUTDIR="output"
 while true
 do
 
-build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
+crawler/build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
 mv -t "$OUTPUTDIR" *.csv # the ouput is moved to the output directory
 python3 collect_geodata.py
 python3 parse.py

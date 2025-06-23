@@ -16,13 +16,13 @@ To clone this repository, please use:
 ```bash
 git clone --recurse-submodules git@github.com:Blockchain-Technology-Lab/network-decentralization.git
 ```
-Then, to download Nim dependencies and build the crawler, in the 'ethereum' folder, run:
+Then, to download Nim dependencies and build the crawler, in the 'ethereum/crawler' folder, run:
 ```bash
 make -j4 update
 make -j4
 ```
 Please note that it may take some time.  
-Install Python dependencies - preferably in a Python virtual environment - using:
+In the 'ethereum' folder, install Python dependencies - preferably in a Python virtual environment - using:
 ```bash
 python3 -m pip install -r requirements.txt
 ```
