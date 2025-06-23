@@ -1,0 +1,3 @@
+[submodule "ethereum/crawler"]
+	path = ethereum/crawler
+	url = https://github.com/LauraAntunes1/fast-ethereum-crawler
