@@ -9,7 +9,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 def collect_geodata(layers):
     """
     Retrieves the geolocation of the nodes.
-    :param layers: the layers of the nodes
+    :param layers: the layer(s) of the nodes - 'Consensus' or 'Execution'
     """
     logging.info('Collecting geodata')
     filename = hlp.get_output_directory() / 'geodata.json'
