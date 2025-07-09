@@ -1,18 +1,10 @@
 # Network decentralisation
 
-This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. To run the tool, please see the 'Requirements' section, then use the following command:
-```bash
-./automation.sh
-```
-`automation.sh` uses a Python virtual environment. To run it, it is therefore recommended to create one to install all dependencies. The name of this environment is, by default, 'venv', but it can be modified in `automation.sh`. Other parameters can be modified in `config.yaml`.
-
----
-
-## Requirements
+## Requirements and setup instructions
 
 Python 3.9 or higher is required. You also need `git`, a C compiler and `make`.
 
-To clone this repository, please use:
+NOTE: this project uses another project as a submodule, so it needs to be cloned with the `--recurse-submodules` flag in order to run properly:
 ```bash
 git clone --recurse-submodules git@github.com:Blockchain-Technology-Lab/network-decentralization.git
 ```
@@ -26,10 +18,20 @@ In the 'ethereum' folder, install Python dependencies - preferably in a Python v
 ```bash
 python3 -m pip install -r requirements.txt
 ```
-Also, you may need to change the permissions of the automation file:
+The name of the virtual environment is, by default, 'venv', but it can be modified in `automation.sh`. Also, you may need to change the permissions of the automation file:
 ```bash
 chmod +x automation.sh
 ```
+
+---
+
+## How to run the tool
+
+This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. To run the tool, please see the 'Requirements and setup instructions' section, then use the following command:
+```bash
+./automation.sh
+```
+Parameters can be modified in `config.yaml`.
 
 ---
 
@@ -84,28 +86,3 @@ The scripts generate:
 - Plots and charts in PNG
 
 ---
-
-## Directory Structure
-
-```
-ethereum/
-│
-├── automation.sh
-├── run.sh
-├── dcrawl.nim
-├── collect_geodata.py
-├── parse.py
-├── plot.py
-├── collect.py
-├── helper.py
-│
-├── config.yaml
-├── requirements.txt
-├── .gitignore
-├── LICENSE
-├── README.md
-├── Makefile
-│
-└── vendor/
-    └── *all submodules*
-```
