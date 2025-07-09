@@ -100,10 +100,10 @@ def get_ip_geodata(ip_addr):
         r = requests.get(f'http://ip-api.com/json/{ip_addr}') # Max 45 HTTP requests per minute
         try:
             data = r.json()
-            if not data.get('org') and data.get('as'):
-                data['org'] = data['as'][data['as'].find(' ')+1:]
-            if not data.get('org') or not data.get('country'):
-                new_r = requests.get(f'https://api.ipapi.is/?q={ip_addr}') # Max 1000 HTTP requests per day
+            if not data.get('org') and data.get('as'): # if the API didn't return an organisation but returned an ASN
+                data['org'] = data['as'][data['as'].find(' ')+1:] # the organisation field takes the value of the ASN field
+            if not data.get('org') or not data.get('country'): # if there's still no organisation or if the API didn't return a country
+                new_r = requests.get(f'https://api.ipapi.is/?q={ip_addr}') # try another API (max 1000 HTTP requests per day)
                 data = new_r.json()
             if 'error' in data:
                 data = None
