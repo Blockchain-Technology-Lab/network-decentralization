@@ -11,7 +11,7 @@ from datetime import datetime
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
 
-def get_geodata(layer, nodes, mode):
+def group_nodes(layer, nodes, mode):
     """
     Groups nodes by geolocation information.
     :param layer: the layer to analyse
@@ -20,7 +20,7 @@ def get_geodata(layer, nodes, mode):
     :return: dictionary grouping node IPs under corresponding geographic/organisational keys.
     """
     output_dir = hlp.get_output_directory()
-    countries = defaultdict(list)
+    groups = defaultdict(list)
 
     with open(output_dir / 'geodata.json') as f:
         geodata = json.load(f)
@@ -33,30 +33,30 @@ def get_geodata(layer, nodes, mode):
                 continue
             if mode == 'Countries':
                 try:
-                    countries[ip_info['country']].append(ip_addr)
+                    groups[ip_info['country']].append(ip_addr)
                 except KeyError:
-                    countries[ip_info['location']['country']].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
+                    groups[ip_info['location']['country']].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             elif mode == 'ASN':
                  try:
                      asn = (ip_info['as'].split())[0]
-                     countries[f'{asn}'].append(ip_addr)
+                     groups[f'{asn}'].append(ip_addr)
                  except KeyError:
                      asn = "AS" + ip_info['asn']['asn']
-                     countries[f'{asn}'].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
+                     groups[f'{asn}'].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             elif mode == 'Organizations':
                  try:
-                     countries[f"{ip_info['org']}"].append(ip_addr)
+                     groups[f"{ip_info['org']}"].append(ip_addr)
                  except KeyError:
-                     countries[ip_info['asn']['org']].append(ip_addr)
+                     groups[ip_info['asn']['org']].append(ip_addr)
         elif ip_addr.endswith('onion'):
-            countries['Tor'].append(ip_addr)
+            groups['Tor'].append(ip_addr)
         else:
-            countries['Unknown'].append(ip_addr)
+            groups['Unknown'].append(ip_addr)
 
-    return countries
+    return groups
 
 
-def geography(nodes, layer, mode):
+def analyse_distribution(nodes, layer, mode):
     """
     Analyses geographic or organisational distribution of nodes
     :param nodes: dictionary mapping each ledger to nodes information
@@ -64,7 +64,7 @@ def geography(nodes, layer, mode):
     :param mode: Grouping mode: 'Countries' or 'Organisations'
     """
     logging.info(f'parse.py: Analyzing {layer} {mode}')
-    geodata = get_geodata(layer, nodes, mode)
+    geodata = group_nodes(layer, nodes, mode)
     logging.info(f'parse.py: {layer} - Total nodes: {sum([len(val) for val in geodata.values()])}')
     geodata_counter = {}
 
@@ -151,7 +151,7 @@ def main():
         logging.info(f'parse.py: Getting {layer} nodes')
         nodes = hlp.get_nodes(layer)
         for mode in MODES:
-            geography(nodes, layer, mode)
+            analyse_distribution(nodes, layer, mode)
         if 'Organizations' in MODES:
             cluster_organizations(layer)
 
