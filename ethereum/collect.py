@@ -17,7 +17,6 @@ def collect_geodata(layers):
         with open(filename) as f:
             geodata = json.load(f)
     except FileNotFoundError:
-        logging.info(f'FileNotFoundError: {filename}')
         geodata = {}
     except json.decoder.JSONDecodeError:
         logging.info(f'JSONDecodeError: {filename}')
