@@ -2,6 +2,8 @@
 
 source venv/bin/activate # venv is the Python virtual environment where all dependencies must be installed
 
+declare -i DAYS=7
+
 BOOTNODE="enr:-Ku4QHqVeJ8PPICcWk1vSn_XcSkjOkNiTg6Fmii5j6vUQgvzMc9L1goFnLKgXqBJspJjIsB91LTOleFmyWWrFVATGngBh2F0dG5ldHOIAAAAAAAAAACEZXRoMpC1MD8qAAAAAP__________gmlkgnY0gmlwhAMRHkWJc2VjcDI1NmsxoQKLVXFOhp2uX6jeT0DvvDpPcU8FWMjQdR4wMuORMhpX24N1ZHCCIyg"
 
 OUTPUTDIR="output"
@@ -11,7 +13,7 @@ while true
 do
 
 crawler/build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
-mv -t "$OUTPUTDIR" *.csv # the ouput is moved to the output directory
+mv -t "$OUTPUTDIR" *.csv # the output is moved to the output directory
 python3 collect_geodata.py
 python3 parse.py
 python3 plot.py
@@ -20,6 +22,8 @@ python3 plot.py
 mkdir "$OUTPUTDIR"/"$(date +%Y-%m-%d)"
 mv -t "$OUTPUTDIR"/"$(date +%Y-%m-%d)" output/*.png output/*.csv
 
-sleep 7d # will repeat the whole process every X days
+echo "The tool will run again in "$DAYS" days."
+
+sleep "$DAYS"d # will repeat the whole process every DAYS days
 
 done
