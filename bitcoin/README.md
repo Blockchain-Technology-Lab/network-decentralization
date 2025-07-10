@@ -10,7 +10,7 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 
 ## Workflow Overview
 
-1. **Network Crawling:** `crawl.py` tries to discover all reachable nodes participating in the network.
+1. **Network Crawling:** `crawl.py` tries to discover all reachable nodes participating in the network. Based on the [Bitnodes](https://github.com/ayeowch/bitnodes.git) project.
 2. **Data Collection:** Scripts collect data about nodes like IP addresses and client versions.
 3. **Data Parsing:** `parse.py` formats raw logs into structured files.
 4. **Visualisation:** `plot.py` generates several graphs.

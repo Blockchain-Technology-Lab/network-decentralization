@@ -8,7 +8,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 
 def main():
     start = time.time()
-    collect_geodata()
+    collect_geodata(LAYERS)
     total_time = time.time() - start
 
     print(2*'----------------\n')
@@ -19,8 +19,7 @@ def main():
     print(f'\tcollect_geodata.py: Total time: {hours:02} hours, {mins:02} mins, {secs:02} secs')
     print(2*'----------------\n')
 
-#        time.sleep(60*60)
-
+LAYERS = hlp.get_layers()
 
 if __name__ == '__main__':
     main()

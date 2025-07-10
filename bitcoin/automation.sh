@@ -14,8 +14,8 @@ python3 distribution.py
 python3 plot.py
 
 # The following 2 lines create a folder and move all png and csv files to it
-mkdir output/"$(date +%d-%m-%y)"
-mv -t output/"$(date +%d-%m-%y)" output/*.png output/*.csv
+mkdir output/"$(date +%Y-%m-%d)"
+mv -t output/"$(date +%Y-%m-%d)" output/*.png output/*.csv
 
 sleep 7d # will repeat the whole process every X days
 
