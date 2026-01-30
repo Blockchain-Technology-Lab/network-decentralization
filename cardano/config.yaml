@@ -1,8 +1,0 @@
-# Configuration file for Cardano pipeline
-
-timeframe:
-  start_date: 2024-01-01 # Analysis start date (YYYY-MM-DD)
-  end_date: 2024-12-31   # Analysis end date (YYYY-MM-DD)
-
-output_directories:
-  - output               # Output directory for results
