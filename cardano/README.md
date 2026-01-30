@@ -8,10 +8,15 @@ This pipeline extracts IP addresses from Cardano relay data, queries geolocation
 
 ## Requirements
 
-Install dependencies from `requirements.txt`:
+It is recommended to use a dedicated Python virtual environment for this project. Create a `.venv` virtual environment in the project directory before installing dependencies:
+
 ```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
+
+This ensures that all dependencies are installed in an isolated environment. The `run.py` script expects the `.venv` environment to be present.
 
 You must set your Blockfrost API key in the BLOCKFROST_API_KEY environment variable before running the pipeline.
 
