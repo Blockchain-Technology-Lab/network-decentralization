@@ -6,7 +6,7 @@ import os
 import time
 import logging
 from pathlib import Path
-import network_decentralization.helper as hlp
+import helper as hlp
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -145,3 +145,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
