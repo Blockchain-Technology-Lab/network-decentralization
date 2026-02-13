@@ -11,6 +11,8 @@ from tqdm import tqdm
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
+DEFAULT_PORT = 3001
+
 
 def resolve_dns(hostname, dns_server=None):
     """
@@ -58,6 +60,8 @@ def resolve_unresolved_entries():
     """Attempt to resolve unresolved DNS entries."""
     relays_file = Path(__file__).parent / 'blockfrost_pools_relays.json'
     output_path = Path(__file__).parent / 'output' / 'dns_resolved.json'
+    # Create output directory if it doesn't exist
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     # Load DNS DB
     dns_db = load_existing_dns_db(output_path)
     if not relays_file.exists():
@@ -66,14 +70,14 @@ def resolve_unresolved_entries():
     with open(relays_file, 'r') as f:
         pool_relays = json.load(f)
     # Build a set for fast lookup: (dns_name, port)
-    existing_keys = set((entry['dns_name'], entry.get('port', 3001)) for entry in dns_db)
+    existing_keys = set((entry['dns_name'], entry.get('port', DEFAULT_PORT)) for entry in dns_db)
     # Collect all unique DNS entries from all pools
     seen_dns = set()
     unresolved_entries = []
     for pool_id, relays in pool_relays.items():
         for relay in relays:
             dns_name = relay.get('dns')
-            port = relay.get('port', 3001)
+            port = relay.get('port', DEFAULT_PORT)
             if dns_name:
                 key = (dns_name, port)
                 if key not in seen_dns and key not in existing_keys:
