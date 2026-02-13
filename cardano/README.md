@@ -53,16 +53,18 @@ If the environment variable is not set, the pipeline will display an error and e
 python run.py
 ```
 
-This will execute all 4 steps:
+This will execute all 5 steps:
 1. Collect relay node data
-2. Collect geolocation data
-3. Parse data into CSVs
-4. Generate plots
+2. Resolve relay DNS names
+3. Collect geolocation data
+4. Parse data into CSVs
+5. Generate plots
 
 ## Files
 
 ### Pipeline Scripts
 - **`collect.py`** - Collects relay node data using Blockfrost
+- **`resolve_dns.py`** - Resolves relay DNS names and writes output/dns_resolved.json
 - **`collect_geodata.py`** - Queries geolocation APIs (ip-api.com, ipapi.is) for IP metadata
 - **`parse.py`** - Parses geodata and creates CSV files for analysis
 - **`plot.py`** - Generates pie charts showing distribution
