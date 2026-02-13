@@ -6,6 +6,7 @@ import os
 import requests
 import time
 import logging
+import json
 
 BLOCKFROST_API_KEY = os.environ.get("BLOCKFROST_API_KEY")
 if not BLOCKFROST_API_KEY:
@@ -54,7 +55,6 @@ def main():
             logging.info(f"Processed {i}/{len(pools)} pools...")
         time.sleep(0.2)  # Respect Blockfrost rate limits
     # Save results
-    import json
     with open("blockfrost_pools_relays.json", "w") as f:
         json.dump(all_relays, f, indent=2)
     logging.info("Saved all pool relays to blockfrost_pools_relays.json")
