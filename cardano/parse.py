@@ -1,5 +1,20 @@
 """
 Parse Cardano geodata and create CSV files for plotting.
+
+This script categorises relay nodes into three dimensions:
+1. Countries: Geographic location based on IP geolocation data
+2. Organizations: Cluster organization names using keyword matching (e.g., 'hetzner', 'digitalocean')
+   with fallback to the first word of the organization name
+3. ASN: Autonomous System Numbers extracted from IP data
+
+Nodes are handled as follows:
+- Onion addresses (.onion): categorised as 'Tor'
+- Unresolved DNS names: categorised as 'Unresolved' (addresses that couldn't be resolved to IPs)
+- Missing geodata: categorised as 'Unknown' (IPs with no geolocation data available)
+- Geodata errors: categorised as 'Unknown' (error entries in the geodata file)
+- Valid entries: categorised by their country, organization, or ASN
+
+Output: Creates three CSV files with historical data (countries_cardano.csv, organizations_cardano.csv, asn_cardano.csv)
 """
 import json
 import logging
@@ -54,31 +69,30 @@ def cluster_org_name(name):
     # Remove trailing punctuation (commas, periods, etc.)
     name = name.rstrip('.,;:')
     
-    # Special rules for specific providers
-    if 'hetzner' in name.lower():
-        return 'Hetzner'
-    elif 'netcup' in name.lower():
-        return 'netcup'
-    elif 'telus-fibre' in name.lower():
-        return 'TELUS-FIBRE'
-    elif 'alicloud' in name.lower():
-        return 'ALICLOUD'
-    elif 'ovh' in name.lower():
-        return 'OVH'
-    elif 'contabo' in name.lower():
-        return 'Contabo'
-    elif 'digitalocean' in name.lower():
-        return 'DigitalOcean'
-    elif 'google' in name.lower():
-        return 'Google'
-    elif 'amazon' in name.lower() or 'aws' in name.lower():
-        return 'Amazon'
-    else:
-        # Default: use first word, remove trailing punctuation, and capitalize
-        first_word = name.split()[0] if name.split() else name
-        first_word = first_word.rstrip('.,;:')
-        # Capitalize first letter, keep rest as-is to preserve acronyms like LLC, GmbH
-        return first_word[0].upper() + first_word[1:] if first_word else 'Unknown'
+    # Provider mapping for clustering
+    provider_map = {
+        'hetzner': 'Hetzner',
+        'netcup': 'netcup',
+        'telus-fibre': 'TELUS-FIBRE',
+        'alicloud': 'ALICLOUD',
+        'ovh': 'OVH',
+        'contabo': 'Contabo',
+        'digitalocean': 'DigitalOcean',
+        'google': 'Google',
+        'amazon': 'Amazon',
+        'aws': 'Amazon',
+    }
+    
+    name_lower = name.lower()
+    for keyword, canonical_name in provider_map.items():
+        if keyword in name_lower:
+            return canonical_name
+    
+    # Default: use first word, remove trailing punctuation, and capitalise
+    first_word = name.split()[0] if name.split() else name
+    first_word = first_word.rstrip('.,;:')
+    # Capitalise first letter, keep rest as-is to preserve acronyms like LLC, GmbH
+    return first_word[0].upper() + first_word[1:] if first_word else 'Unknown'
 
 
 def get_geodata(mode='Countries'):
