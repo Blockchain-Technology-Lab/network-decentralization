@@ -1,8 +1,16 @@
 """
 Collect geodata for Cardano relay nodes.
+
+This script collects geolocation and organization data for Cardano relay nodes by:
+1. Loading relay information from blockfrost_pools_relays.json and resolving DNS names via dns_resolved.json
+2. Processing each unique relay IP address to fetch geodata from ip-api.com and ipapi.is
+3. Skipping Tor onion addresses and already-processed IPs
+4. Saving results incrementally to output/geodata/cardano.json
+
+The script uses two geolocation APIs to ensure data quality: ip-api.com provides primary data
+with fallback to ipapi.is for missing organization or country information.
 """
 import json
-import os
 import time
 import logging
 from pathlib import Path
@@ -79,12 +87,18 @@ def collect_cardano_geodata():
             if ip:
                 relay_targets.add(ip)
             else:
-                dns_name = relay.get('dns')
-                port = relay.get('port', 3001)
-                if dns_name:
-                    ip = dns_lookup.get((pool_id, dns_name, port))
-                    if ip:
-                        relay_targets.add(ip)
+                # Try IPv6 if IPv4 not available
+                ip = relay.get('ipv6')
+                if ip:
+                    relay_targets.add(ip)
+                else:
+                    # Try DNS lookup if neither IPv4 nor IPv6 available
+                    dns_name = relay.get('dns')
+                    port = relay.get('port', 3001)
+                    if dns_name:
+                        ip = dns_lookup.get((pool_id, dns_name, port))
+                        if ip:
+                            relay_targets.add(ip)
     relay_targets = list(relay_targets)  # Unique IPs only
     if not relay_targets:
         logging.error('No relay IPs to process!')
@@ -93,8 +107,10 @@ def collect_cardano_geodata():
     processed = 0
     skipped = 0
     new_entries = 0
+    onion_count = 0
     for node_ip in relay_targets:
         if node_ip.endswith('onion'):
+            onion_count += 1
             skipped += 1
             continue
         if node_ip in geodata:
@@ -126,7 +142,7 @@ def collect_cardano_geodata():
             processed += 1
             continue
     logging.info(f'{ledger} - Complete! Processed {processed}/{len(relay_targets)} relay IPs')
-    logging.info(f'{ledger} - New entries: {new_entries}, Skipped: {skipped}')
+    logging.info(f'{ledger} - New entries: {new_entries}, Skipped: {skipped} (including {onion_count} onion nodes)')
     logging.info(f'{ledger} - Total geodata entries: {len(geodata)}')
 
 
@@ -145,4 +161,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
