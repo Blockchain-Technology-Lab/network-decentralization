@@ -13,7 +13,8 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 1. **Network Crawling:** `crawl.py` tries to discover all reachable nodes participating in the network. Based on the [Bitnodes](https://github.com/ayeowch/bitnodes.git) project.
 2. **Data Collection:** Scripts collect data about nodes like IP addresses and client versions.
 3. **Data Parsing:** `parse.py` formats raw logs into structured files.
-4. **Visualisation:** `plot.py` generates several graphs.
+4. **Metrics Computation:** `compute_metrics.py` calculates decentralisation metrics.
+5. **Visualisation:** `plot.py` generates several graphs.
 
 ---
 
@@ -27,11 +28,11 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 - **`parse.py`**  
   Processes raw data (e.g., logs from crawling) into structured formats (JSON, CSV) for easier analysis and plotting.
 
+- **`compute_metrics.py`**  
+  Computes network decentralisation metrics (HHI, Nakamoto coefficient, entropy, max power ratio) from CSV files.
+
 - **`analyze.py`** (Not in use)  
   Analyses datasets to extract decentralisation metrics.
-
-- **`distribution.py`**  
-  Distributes Tor nodes among others proportionally, by country or organisation.
 
 - **`plot.py`**  
   Generates data visualisations.
@@ -92,6 +93,7 @@ The scripts generate:
 - Parsed node datasets (CSV, JSON)
 - Geolocation-enriched data
 - Plots and charts in PNG
+- Computed metrics in `output_organizations_*.csv` and `output_countries_*.csv` files
 
 ---
 
@@ -106,9 +108,9 @@ bitcoin/
 ├── collect_geodata.py
 ├── collect_osdata.py
 ├── crawl.py
-├── distribution.py
 ├── parse.py
 ├── plot.py
+├── compute_metrics.py
 │
 ├── config.yaml
 ├── requirements.txt
