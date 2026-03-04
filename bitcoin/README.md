@@ -31,20 +31,15 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 - **`compute_metrics.py`**  
   Computes network decentralisation metrics (HHI, Nakamoto coefficient, entropy, max power ratio) from CSV files.
 
-- **`analyze.py`** (Not in use)  
-  Analyses datasets to extract decentralisation metrics.
-
 - **`plot.py`**  
   Generates data visualisations.
 
 - **`collect_geodata.py`**  
   Uses third-party APIs to enrich nodes with geolocation info (country, city, organisation).
 
-- **`collect_osdata.py`** (Not in use)  
-  Identifies the operating system running on nodes.
-
 - **`cleanup_dead_nodes.py`**  
   Scans stored node datasets to remove offline or unreachable nodes.
+
 
 ### Automation & Configuration
 
@@ -102,11 +97,9 @@ The scripts generate:
 ```
 bitcoin/
 │
-├── analyze.py
 ├── automation.sh
 ├── cleanup_dead_nodes.py
 ├── collect_geodata.py
-├── collect_osdata.py
 ├── crawl.py
 ├── parse.py
 ├── plot.py
