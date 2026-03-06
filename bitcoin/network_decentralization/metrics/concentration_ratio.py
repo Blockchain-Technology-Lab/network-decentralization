@@ -1,9 +1,9 @@
-def compute_concentration_ratio(block_distribution, topn):
+def compute_concentration_ratio(distribution, topn):
     """
-    Calculates the n-concentration ratio of a distribution of balances
-    :param block_distribution: a list of integers, each being the blocks that an entity has produced, sorted in descending order
-    :param topn: the number of top block producers to consider
-    :returns: float that represents the ratio of blocks produced by the top n block producers (0 if there weren't any)
+    Calculates the n-concentration ratio of a distribution
+    :param distribution: list of non-negative counts per entity, sorted in descending order
+    :param topn: the number of top entities to consider
+    :returns: float that represents the ratio of total count held by the top n entities (0 if total is 0)
     """
-    total_blocks = sum(block_distribution)
-    return sum(block_distribution[:topn]) / total_blocks if total_blocks else 0
+    total = sum(distribution)
+    return sum(distribution[:topn]) / total if total else 0
