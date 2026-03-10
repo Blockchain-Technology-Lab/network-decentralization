@@ -116,7 +116,12 @@ bitcoin/
 │   ├── collect.py
 │   ├── constants.py
 │   ├── helper.py
-│   └── protocol.py
+│   ├── protocol.py
+│   └── metrics/
+│       ├── concentration_ratio.py
+│       ├── entropy.py
+│       ├── herfindahl_hirschman_index.py
+│       └── nakamoto_coefficient.py
 │
 └── seed_info/
     ├── bitcoin.json
