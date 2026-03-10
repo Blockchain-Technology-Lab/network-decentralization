@@ -54,6 +54,7 @@ def get_ledger_name(csv_path):
     :return: Ledger name (e.g., 'bitcoin', 'bitcoin_cash')
     """
     filename = csv_path.stem  # Get filename without extension
+    filename = filename.replace('_without_tor', '')  # Normalize bitcoin without_tor variant
     parts = filename.split('_')
     # Remove 'organizations' or 'countries' prefix
     return '_'.join(parts[1:])
@@ -104,23 +105,19 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names):
     :param is_country: Boolean to indicate if processing country files
     :param metric_names: List of metric names to compute and output
     """
+    # For bitcoin, prefer the _without_tor variant if it exists; skip the regular bitcoin file in that case
+    file_type = 'countries' if is_country else 'organizations'
+    without_tor_path = output_dir / f"{file_type}_bitcoin_without_tor.csv"
+    skip_regular_bitcoin = without_tor_path.exists()
+
     csv_files = sorted(output_dir.glob(file_pattern))
     
     for csv_path in csv_files:
-        # Skip _without_tor files in the glob - we'll handle them explicitly for bitcoin
-        if '_without_tor' in csv_path.name:
+        if csv_path.name == f"{file_type}_bitcoin.csv" and skip_regular_bitcoin:
             continue
             
         try:
             ledger = get_ledger_name(csv_path)
-            
-            # For bitcoin, check if _without_tor version exists and use that instead
-            if ledger == 'bitcoin':
-                file_type = 'countries' if is_country else 'organizations'
-                without_tor_path = output_dir / f"{file_type}_bitcoin_without_tor.csv"
-                if without_tor_path.exists():
-                    csv_path = without_tor_path
-            
             date, distribution = read_csv_data(csv_path)
             metrics = compute_metrics(distribution, metric_names)
             
