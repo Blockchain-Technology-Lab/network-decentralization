@@ -29,11 +29,17 @@ network_metrics:
   - HHI
   - Nakamoto
 #  - Entropy
-  - Max Power Ratio
+  - Concentration Ratio
 
 # Metrics for geographic analysis (countries)
 geo_metrics:
   - HHI
   - Nakamoto
   - Entropy
-  - Max Power Ratio
+  - Concentration Ratio
+
+# Parameters for metric computation
+metrics_parameters:
+  concentration_ratio_topn:
+    - 1
+    - 3
