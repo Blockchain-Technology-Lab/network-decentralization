@@ -103,6 +103,24 @@ def get_concentration_ratio_topn():
     return values if values else [1, 3]
 
 
+def get_without_tor_ledgers():
+    """
+    Retrieves the target ledgers for generating *_without_tor CSV files.
+    :returns: list of ledger names, or None when not configured
+    """
+    params = get_config_data().get('parse_parameters', {})
+    raw_ledgers = params.get('without_tor_ledgers')
+
+    if raw_ledgers is None:
+        return None
+
+    if not isinstance(raw_ledgers, list):
+        raw_ledgers = [raw_ledgers]
+
+    ledgers = [ledger.strip() for ledger in raw_ledgers if isinstance(ledger, str) and ledger.strip()]
+    return list(dict.fromkeys(ledgers)) or None
+
+
 def get_output_directory(ledger=None, dead=False):
     """
     Reads the config file and retrieves the output directory
