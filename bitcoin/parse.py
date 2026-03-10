@@ -327,10 +327,10 @@ def version(reachable_nodes, mode):
             versions_df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index_label = name)
 
 
-def redistribute_tor_nodes(name, ledger, df, mode):
+def redistribute_tor_nodes(mode_lower, ledger, df, mode):
     """
     Redistributes Tor node count proportionally across non-Tor rows.
-    :param name: lowercase version of the mode ('countries' or 'organizations') used in file naming.
+    :param mode_lower: lowercase version of mode ('countries' or 'organizations') used in file naming.
     :param ledger: the ledger name.
     :param df: the dataframe in which the Tor nodes must be reditributed.
     :param mode: the mode name (e.g., 'Countries', 'Organizations').
@@ -347,7 +347,7 @@ def redistribute_tor_nodes(name, ledger, df, mode):
     df['Distribution'] = df.apply(lambda row: round((row[f'{date}'] / number_of_total_nodes_without_tor) * number_of_tor_nodes) if row[f'{mode}'] != 'Tor' else 0, axis=1)  # create a new column 'Distribution' that distributes the Tor nodes proportionally to non-Tor rows
     df[date] = df[date] + df['Distribution']
     df_without_tor = df[df[f'{mode}'] != 'Tor']  # filter out the Tor row
-    df_without_tor[[mode, date]].to_csv(f'./output/{name}_{ledger}_without_tor.csv', index=False)  # save the updated DataFrame to a new CSV
+    df_without_tor[[mode, date]].to_csv(f'./output/{mode_lower}_{ledger}_without_tor.csv', index=False)  # save the updated DataFrame to a new CSV
 
 
 def create_without_tor_files(ledger):
@@ -358,13 +358,13 @@ def create_without_tor_files(ledger):
     modes = ['Countries', 'Organizations']
     for mode in modes:
         logging.info(f'parse.py: Removing Tor from {ledger} {mode}')
-        name = mode.lower()
-        filename = Path(f'./output/{name}_{ledger}.csv')
+        mode_lower = mode.lower()
+        filename = Path(f'./output/{mode_lower}_{ledger}.csv')
         if not filename.is_file():
             logging.warning(f"File not found: {filename}")
             return None
         df = pd.read_csv(filename)
-        redistribute_tor_nodes(name, ledger, df, mode)
+        redistribute_tor_nodes(mode_lower, ledger, df, mode)
 
 
 def cluster_organizations(ledger):
