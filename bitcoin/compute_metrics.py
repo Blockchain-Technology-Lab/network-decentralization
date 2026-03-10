@@ -7,7 +7,7 @@ Processes both organization and country CSV files and outputs metrics in CSV for
 import csv
 import pathlib
 import sys
-from network_decentralization.helper import get_config_data, get_metrics_network, get_metrics_geo
+from network_decentralization.helper import get_metrics_network, get_metrics_geo
 from network_decentralization.metrics.herfindahl_hirschman_index import compute_hhi
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
@@ -76,7 +76,7 @@ def compute_metrics(distribution, metric_names):
         'HHI': ('hhi', compute_hhi),
         'Nakamoto': ('nakamoto', compute_nakamoto_coefficient),
         'Entropy': ('entropy', lambda d: compute_entropy(d, alpha=1)),
-        'Max Power Ratio': ('max_power_ratio', lambda d: max(d) / total if d else 0)
+        'Max Power Ratio': ('max_power_ratio', lambda d: compute_concentration_ratio(d, topn=1))
     }
     
     if total == 0:
