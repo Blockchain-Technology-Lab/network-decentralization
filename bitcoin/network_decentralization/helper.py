@@ -64,6 +64,22 @@ def get_concurrency():
     return get_config_data()['execution_parameters']['concurrency']
 
 
+def get_metrics_network():
+    """
+    Retrieves the list of metrics to compute for network analysis (organizations)
+    :returns: a list of metric names to compute
+    """
+    return get_config_data().get('network_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Max Power Ratio'])
+
+
+def get_metrics_geo():
+    """
+    Retrieves the list of metrics to compute for geographic analysis (countries)
+    :returns: a list of metric names to compute
+    """
+    return get_config_data().get('geo_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Max Power Ratio'])
+
+
 def get_output_directory(ledger=None, dead=False):
     """
     Reads the config file and retrieves the output directory
