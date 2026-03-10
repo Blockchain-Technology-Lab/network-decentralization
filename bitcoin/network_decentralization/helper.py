@@ -69,7 +69,7 @@ def get_metrics_network():
     Retrieves the list of metrics to compute for network analysis (organizations)
     :returns: a list of metric names to compute
     """
-    return get_config_data().get('network_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Max Power Ratio'])
+    return get_config_data().get('network_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Concentration Ratio'])
 
 
 def get_metrics_geo():
@@ -77,7 +77,30 @@ def get_metrics_geo():
     Retrieves the list of metrics to compute for geographic analysis (countries)
     :returns: a list of metric names to compute
     """
-    return get_config_data().get('geo_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Max Power Ratio'])
+    return get_config_data().get('geo_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Concentration Ratio'])
+
+
+def get_concentration_ratio_topn():
+    """
+    Retrieves top-N values used by concentration-ratio based metrics.
+    :returns: list of unique positive integers (defaults to [1, 3])
+    """
+    params = get_config_data().get('metrics_parameters', {})
+    raw_topn = params.get('concentration_ratio_topn', [1, 3])
+
+    if not isinstance(raw_topn, list):
+        raw_topn = [raw_topn]
+
+    values = []
+    for value in raw_topn:
+        try:
+            parsed = int(value)
+            if parsed > 0 and parsed not in values:
+                values.append(parsed)
+        except (TypeError, ValueError):
+            continue
+
+    return values if values else [1, 3]
 
 
 def get_output_directory(ledger=None, dead=False):
