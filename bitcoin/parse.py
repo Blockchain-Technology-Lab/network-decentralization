@@ -350,16 +350,16 @@ def redistribute_tor_nodes(name, ledger, df, mode):
     df_without_tor[[mode, date]].to_csv(f'./output/{name}_{ledger}_without_tor.csv', index=False)  # save the updated DataFrame to a new CSV
 
 
-def without_tor():
+def create_without_tor_files(ledger):
     """
-    Loads a CSV file and calls the redistribute_tor_nodes function.
+    Loads CSV files for the given ledger and redistributes Tor nodes.
+    :param ledger: the ledger to process for *_without_tor output files
     """
-    ledger = 'bitcoin'
     modes = ['Countries', 'Organizations']
     for mode in modes:
         logging.info(f'parse.py: Removing Tor from {ledger} {mode}')
         name = mode.lower()
-        filename = pathlib.Path(f'./output/{name}_{ledger}.csv')
+        filename = Path(f'./output/{name}_{ledger}.csv')
         if not filename.is_file():
             logging.warning(f"File not found: {filename}")
             return None
@@ -420,6 +420,7 @@ MODES = hlp.get_mode()
 
 def main():
     logging.info('Start parsing')
+    without_tor_ledgers = set(hlp.get_without_tor_ledgers() or [])
 
     reachable_nodes = {}
     for ledger in LEDGERS:
@@ -429,8 +430,8 @@ def main():
             geography(reachable_nodes, ledger, mode)
         if 'Organizations' in MODES:
             cluster_organizations(ledger)
-        if 'bitcoin' in LEDGERS:
-            without_tor()
+        if ledger in without_tor_ledgers:
+            create_without_tor_files(ledger)
 
 if __name__ == '__main__':
     main()
