@@ -7,6 +7,7 @@ Processes both organization and country CSV files and outputs metrics in CSV for
 import csv
 import pathlib
 import sys
+from network_decentralization.helper import get_config_data, get_metrics_network, get_metrics_geo
 from network_decentralization.metrics.herfindahl_hirschman_index import compute_hhi
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
@@ -58,34 +59,41 @@ def get_ledger_name(csv_path):
     return '_'.join(parts[1:])
 
 
-def compute_metrics(distribution):
+def compute_metrics(distribution, metric_names):
     """
-    Compute all metrics for a given distribution.
+    Compute specified metrics for a given distribution.
     
     :param distribution: Sorted list of entity counts (descending order)
-    :return: Dictionary with all computed metrics
+    :param metric_names: List of metric names to compute (e.g., ['HHI', 'Nakamoto', 'Entropy'])
+    :return: Dictionary with computed metric values
     """
     total = sum(distribution)
+    metrics = {}
+    
+    # Mapping of metric display names to computation functions
+    metric_map = {
+        'HHI': ('hhi', compute_hhi),
+        'Nakamoto': ('nakamoto', compute_nakamoto_coefficient),
+        'Entropy': ('entropy', lambda d: compute_entropy(d, alpha=1)),
+        'Max Power Ratio': ('max_power_ratio', lambda d: max(d) / total if d else 0)
+    }
     
     if total == 0:
-        return {
-            'hhi': None,
-            'nakamoto': None,
-            'entropy': None,
-            'max_power_ratio': None
-        }
+        return {metric_map[name][0]: None for name in metric_names if name in metric_map}
     
-    metrics = {
-        'hhi': compute_hhi(distribution),
-        'nakamoto': compute_nakamoto_coefficient(distribution),
-        'entropy': compute_entropy(distribution, alpha=1),  # Shannon entropy
-        'max_power_ratio': max(distribution) / total if distribution else 0
-    }
+    for metric_name in metric_names:
+        if metric_name in metric_map:
+            key, func = metric_map[metric_name]
+            try:
+                metrics[key] = func(distribution)
+            except Exception as e:
+                print(f"Error computing {metric_name}: {e}", file=sys.stderr)
+                metrics[key] = None
     
     return metrics
 
 
-def process_csv_files(output_dir, file_pattern, is_country=False):
+def process_csv_files(output_dir, file_pattern, is_country, metric_names):
     """
     Process all CSV files matching a pattern and output metrics.
     Appends results to existing files or creates new ones.
@@ -94,6 +102,7 @@ def process_csv_files(output_dir, file_pattern, is_country=False):
     :param output_dir: Path to the output directory
     :param file_pattern: Glob pattern for CSV files (e.g., 'organizations_*.csv')
     :param is_country: Boolean to indicate if processing country files
+    :param metric_names: List of metric names to compute and output
     """
     csv_files = sorted(output_dir.glob(file_pattern))
     
@@ -113,48 +122,46 @@ def process_csv_files(output_dir, file_pattern, is_country=False):
                     csv_path = without_tor_path
             
             date, distribution = read_csv_data(csv_path)
-            metrics = compute_metrics(distribution)
+            metrics = compute_metrics(distribution, metric_names)
             
-            # Determine output filename
-            if is_country:
-                output_filename = f"output_countries_{ledger}.csv"
-                output_path = output_dir / output_filename
-                file_exists = output_path.exists()
+            # Determine output filename and metric column mapping
+            file_type = 'countries' if is_country else 'organizations'
+            output_filename = f"output_{file_type}_{ledger}.csv"
+            output_path = output_dir / output_filename
+            file_exists = output_path.exists()
+            
+            # Map display names to internal keys for column ordering
+            metric_key_map = {
+                'HHI': 'hhi',
+                'Nakamoto': 'nakamoto',
+                'Entropy': 'entropy',
+                'Max Power Ratio': 'max_power_ratio'
+            }
+            
+            # Build header from metric names
+            header = ['ledger', 'date', 'clustering'] + metric_names
+            
+            # Write header and data (append if exists)
+            with open(output_path, 'a', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                if not file_exists:
+                    writer.writerow(header)
                 
-                # Write header and data (append if exists)
-                with open(output_path, 'a', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    if not file_exists:
-                        writer.writerow(['ledger', 'date', 'clustering', 'entropy', 'hhi', 'nakamoto_coefficient', 'max_power_ratio'])
-                    writer.writerow([
-                        ledger,
-                        date,
-                        'False',
-                        f"{metrics['entropy']:.15g}",
-                        f"{metrics['hhi']:.16g}",
-                        metrics['nakamoto'],
-                        f"{metrics['max_power_ratio']:.16g}"
-                    ])
-                print(f"Appended to: {output_filename}", file=sys.stderr)
-            else:
-                output_filename = f"output_organizations_{ledger}.csv"
-                output_path = output_dir / output_filename
-                file_exists = output_path.exists()
+                # Build row with metric values in the same order as header
+                row = [ledger, date, 'False']
+                for metric_display_name in metric_names:
+                    metric_key = metric_key_map.get(metric_display_name)
+                    value = metrics.get(metric_key) if metric_key else None
+                    if value is None:
+                        row.append('')
+                    elif isinstance(value, float):
+                        row.append(f"{value:.16g}")
+                    else:
+                        row.append(str(value))
                 
-                # Write header and data (append if exists)
-                with open(output_path, 'a', newline='', encoding='utf-8') as f:
-                    writer = csv.writer(f)
-                    if not file_exists:
-                        writer.writerow(['ledger', 'date', 'clustering', 'hhi', 'nakamoto_coefficient', 'max_power_ratio'])
-                    writer.writerow([
-                        ledger,
-                        date,
-                        'False',
-                        f"{metrics['hhi']:.16g}",
-                        metrics['nakamoto'],
-                        f"{metrics['max_power_ratio']:.16g}"
-                    ])
-                print(f"Appended to: {output_filename}", file=sys.stderr)
+                writer.writerow(row)
+            
+            print(f"Appended to: {output_filename}", file=sys.stderr)
             
         except Exception as e:
             print(f"Error processing {csv_path.name}: {e}", file=sys.stderr)
@@ -164,19 +171,22 @@ def process_csv_files(output_dir, file_pattern, is_country=False):
 def main():
     """
     Main entry point for the script.
-    Processes organization and country CSV files from the output directory.
+    Loads metric names from config and processes organization and country CSV files.
     """
+    # Load metric names from config using helper functions
+    network_metrics = get_metrics_network()
+    geo_metrics = get_metrics_geo()
+    
     output_dir = pathlib.Path(__file__).parent / 'output'
     
     if not output_dir.exists():
         print(f"Error: Output directory not found at {output_dir}", file=sys.stderr)
         sys.exit(1)
+    # Process organization files with network metrics
+    process_csv_files(output_dir, 'organizations_*.csv', is_country=False, metric_names=network_metrics)
     
-    # Process organization files
-    process_csv_files(output_dir, 'organizations_*.csv', is_country=False)
-    
-    # Process country files
-    process_csv_files(output_dir, 'countries_*.csv', is_country=True)
+    # Process country files with geo metrics
+    process_csv_files(output_dir, 'countries_*.csv', is_country=True, metric_names=geo_metrics)
 
 
 if __name__ == '__main__':
