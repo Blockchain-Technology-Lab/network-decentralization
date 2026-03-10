@@ -23,3 +23,17 @@ last_time_active: 1
 # The first path will be used to write newly created dbs and the output of runs
 output_directories:  
   - ./output
+
+# Metrics for network analysis (organizations)
+network_metrics:
+  - HHI
+  - Nakamoto
+#  - Entropy
+  - Max Power Ratio
+
+# Metrics for geographic analysis (countries)
+geo_metrics:
+  - HHI
+  - Nakamoto
+  - Entropy
+  - Max Power Ratio
