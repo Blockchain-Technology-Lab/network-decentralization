@@ -41,6 +41,7 @@ Parameters can be modified in `config.yaml`.
 2. **Data Collection:** `collect_geodata.py` collects data about nodes like IP addresses and geolocation.
 3. **Data Parsing:** `parse.py` formats raw logs into structured files.
 4. **Visualisation:** `plot.py` generates several graphs.
+5. **Metrics Computation:** `compute_metrics.py` computes decentralization metrics from parsed country/organization distributions.
 
 ---
 
@@ -56,6 +57,9 @@ Parameters can be modified in `config.yaml`.
 
 - **`plot.py`**  
   Generates data visualisations.
+
+- **`compute_metrics.py`**  
+  Reads parsed CSV distributions and computes metrics (`HHI`, `Nakamoto`, `Entropy`, `Concentration Ratio`) into output CSV files.
 
 - **`collect_geodata.py`**  
   Uses third-party APIs to enrich nodes with geolocation info (country, city, organisation).
@@ -84,5 +88,6 @@ The scripts generate:
 - Parsed node datasets (CSV, JSON)
 - Geolocation-enriched data
 - Plots and charts in PNG
+- Metric files
 
 ---
