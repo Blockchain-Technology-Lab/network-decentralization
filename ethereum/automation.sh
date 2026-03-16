@@ -12,16 +12,17 @@ OUTPUTDIR="output"
 while true
 do
 
-crawler/build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
+build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
 mv -t "$OUTPUTDIR" *.csv # the output is moved to the output directory
 python3 collect_geodata.py
 python3 parse.py
 python3 plot.py
+python3 compute_metrics.py
 
 # The following 2 lines create a folder and move all png and csv files to it
 mkdir "$OUTPUTDIR"/"$(date +%Y-%m-%d)"
 mv -t "$OUTPUTDIR"/"$(date +%Y-%m-%d)" output/*.png output/*.csv
-
+mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip,discovery,peerstore}*.csv output/response_length.json output/*.png 2>/dev/null || true
 echo "The tool will run again in "$DAYS" days."
 
 sleep "$DAYS"d # will repeat the whole process every DAYS days

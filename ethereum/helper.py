@@ -54,6 +54,47 @@ def get_output_directory():
     return output_dir
 
 
+def get_metrics_network():
+    """
+    Retrieves the list of metrics to compute for network analysis (organizations)
+    :returns: a list of metric names to compute
+    """
+    return get_config_data().get('network_metrics')
+
+
+def get_metrics_geo():
+    """
+    Retrieves the list of metrics to compute for geographic analysis (countries)
+    :returns: a list of metric names to compute
+    """
+    return get_config_data().get('geo_metrics')
+
+
+def get_concentration_ratio_topn():
+    """
+    Retrieves top-N values used by concentration-ratio based metrics.
+    :returns: list of unique positive integers
+    """
+    params = get_config_data().get('metrics_parameters', {})
+    raw_topn = params.get('concentration_ratio_topn')
+
+    if raw_topn is None:
+        return None
+    if not isinstance(raw_topn, list):
+        raw_topn = [raw_topn]
+
+    values = []
+    for value in raw_topn:
+        try:
+            parsed = int(value)
+            if parsed > 0 and parsed not in values:
+                values.append(parsed)
+        except (TypeError, ValueError):
+            continue
+
+    return values if values else None
+
+
 def get_layer(line):
     """
     Retrieves the layer in the given line

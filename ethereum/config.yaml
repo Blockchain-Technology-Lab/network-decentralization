@@ -12,3 +12,23 @@ execution_parameters:
 
 output_directories:  
   - ./output
+
+# Metrics for network analysis (organizations)
+network_metrics:
+  - HHI
+  - Nakamoto
+#  - Entropy
+  - Concentration Ratio
+
+# Metrics for geographic analysis (countries)
+geo_metrics:
+  - HHI
+  - Nakamoto
+  - Entropy
+  - Concentration Ratio
+
+# Parameters for metric computation
+metrics_parameters:
+  concentration_ratio_topn:
+    - 1
+    - 3
