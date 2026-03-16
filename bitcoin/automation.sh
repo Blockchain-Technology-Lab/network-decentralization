@@ -14,7 +14,7 @@ python3 compute_metrics.py
 
 # The following 2 lines create a folder and move all png and csv files to it
 mkdir output/"$(date +%Y-%m-%d)"
-mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip}_*.csv output/response_length.json 2>/dev/null || true
+mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip,discovery,peerstore}*.csv output/response_length.json output/*.png 2>/dev/null || true
 
 sleep 7d # will repeat the whole process every X days
 
