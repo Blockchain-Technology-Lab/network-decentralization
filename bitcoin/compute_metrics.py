@@ -141,12 +141,8 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
                 if metric_name == 'Concentration Ratio':
                     for topn in concentration_ratio_topn:
                         metric_columns.append((f"Concentration Ratio (Top {topn})", f"concentration_ratio_top_{topn}"))
-                elif metric_name == 'HHI':
-                    metric_columns.append(('HHI', 'hhi'))
-                elif metric_name == 'Nakamoto':
-                    metric_columns.append(('Nakamoto', 'nakamoto'))
-                elif metric_name == 'Entropy':
-                    metric_columns.append(('Entropy', 'entropy'))
+                else:
+                    metric_columns.append((metric_name, metric_name.lower()))
 
             header = ['ledger', 'date', 'clustering'] + [column[0] for column in metric_columns]
             
