@@ -80,8 +80,7 @@ def compute_metrics(distribution, metric_names, concentration_ratio_topn):
     }
     
     for metric_name in metric_names:
-        # Keep legacy 'Max Power Ratio' as an alias so older configs still work.
-        if metric_name in ('Concentration Ratio', 'Max Power Ratio'):
+        if metric_name == 'Concentration Ratio':
             for topn in concentration_ratio_topn:
                 key = f"concentration_ratio_top_{topn}"
                 try:
@@ -139,8 +138,7 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
             # Build output metric columns from selected metrics.
             metric_columns = []
             for metric_name in metric_names:
-                # Keep legacy 'Max Power Ratio' as an alias so older configs still work.
-                if metric_name in ('Concentration Ratio', 'Max Power Ratio'):
+                if metric_name == 'Concentration Ratio':
                     for topn in concentration_ratio_topn:
                         metric_columns.append((f"Concentration Ratio (Top {topn})", f"concentration_ratio_top_{topn}"))
                 elif metric_name == 'HHI':
