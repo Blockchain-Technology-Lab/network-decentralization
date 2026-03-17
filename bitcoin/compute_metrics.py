@@ -7,7 +7,7 @@ Processes both organization and country CSV files and outputs metrics in CSV for
 import csv
 import pathlib
 import sys
-from network_decentralization.helper import get_metrics_network, get_metrics_geo, get_concentration_ratio_topn
+from network_decentralization.helper import get_metrics_network, get_metrics_geo, get_concentration_ratio_topn, get_entropy_alphas
 from network_decentralization.metrics.herfindahl_hirschman_index import compute_hhi
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
@@ -60,13 +60,14 @@ def get_ledger_name(csv_path):
     return '_'.join(parts[1:])
 
 
-def compute_metrics(distribution, metric_names, concentration_ratio_topn):
+def compute_metrics(distribution, metric_names, concentration_ratio_topn, entropy_alphas):
     """
     Compute specified metrics for a given distribution.
     
     :param distribution: Sorted list of entity counts (descending order)
     :param metric_names: List of metric names to compute (e.g., ['HHI', 'Nakamoto', 'Entropy'])
     :param concentration_ratio_topn: list of top-N parameters for concentration ratio metrics
+    :param entropy_alphas: alpha parameters used for entropy metric computation
     :return: Dictionary with computed metric values
     """
     metrics = {}
@@ -76,7 +77,6 @@ def compute_metrics(distribution, metric_names, concentration_ratio_topn):
     metric_map = {
         'HHI': ('hhi', compute_hhi),
         'Nakamoto': ('nakamoto', compute_nakamoto_coefficient),
-        'Entropy': ('entropy', lambda d: compute_entropy(d, alpha=1)),
     }
     
     for metric_name in metric_names:
@@ -87,6 +87,17 @@ def compute_metrics(distribution, metric_names, concentration_ratio_topn):
                     metrics[key] = compute_concentration_ratio(distribution, topn=topn)
                 except Exception as e:
                     print(f"Error computing {metric_name} (topn={topn}): {e}", file=sys.stderr)
+                    metrics[key] = None
+            continue
+
+        if metric_name == 'Entropy':
+            for alpha in entropy_alphas:
+                alpha_str = f"{alpha:g}"
+                key = f"entropy_alpha_{alpha_str}"
+                try:
+                    metrics[key] = compute_entropy(distribution, alpha=alpha)
+                except Exception as e:
+                    print(f"Error computing {metric_name} (alpha={alpha_str}): {e}", file=sys.stderr)
                     metrics[key] = None
             continue
 
@@ -101,7 +112,7 @@ def compute_metrics(distribution, metric_names, concentration_ratio_topn):
     return metrics
 
 
-def process_csv_files(output_dir, file_pattern, is_country, metric_names, concentration_ratio_topn):
+def process_csv_files(output_dir, file_pattern, is_country, metric_names, concentration_ratio_topn, entropy_alphas):
     """
     Process all CSV files matching a pattern and output metrics.
     Appends results to existing files or creates new ones.
@@ -112,6 +123,7 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
     :param is_country: Boolean to indicate if processing country files
     :param metric_names: List of metric names to compute and output
     :param concentration_ratio_topn: list of top-N parameters for concentration ratio metrics
+    :param entropy_alphas: alpha parameters used for entropy metric computation
     """
     # For bitcoin, prefer the _without_tor variant if it exists; skip the regular bitcoin file in that case
     file_type = 'countries' if is_country else 'organizations'
@@ -127,7 +139,7 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
         try:
             ledger = get_ledger_name(csv_path)
             date, distribution = read_csv_data(csv_path)
-            metrics = compute_metrics(distribution, metric_names, concentration_ratio_topn)
+            metrics = compute_metrics(distribution, metric_names, concentration_ratio_topn, entropy_alphas)
             
             # Determine output filename and metric column mapping
             file_type = 'countries' if is_country else 'organizations'
@@ -141,6 +153,10 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
                 if metric_name == 'Concentration Ratio':
                     for topn in concentration_ratio_topn:
                         metric_columns.append((f"Concentration Ratio (Top {topn})", f"concentration_ratio_top_{topn}"))
+                elif metric_name == 'Entropy':
+                    for alpha in entropy_alphas:
+                        alpha_str = f"{alpha:g}"
+                        metric_columns.append((f"Entropy (alpha={alpha_str})", f"entropy_alpha_{alpha_str}"))
                 else:
                     metric_columns.append((metric_name, metric_name.lower()))
 
@@ -181,6 +197,7 @@ def main():
     network_metrics = get_metrics_network()
     geo_metrics = get_metrics_geo()
     concentration_ratio_topn = get_concentration_ratio_topn()
+    entropy_alphas = get_entropy_alphas()
     
     output_dir = pathlib.Path(__file__).parent / 'output'
     
@@ -194,6 +211,7 @@ def main():
         is_country=False,
         metric_names=network_metrics,
         concentration_ratio_topn=concentration_ratio_topn,
+        entropy_alphas=entropy_alphas,
     )
     
     # Process country files with geo metrics
@@ -203,6 +221,7 @@ def main():
         is_country=True,
         metric_names=geo_metrics,
         concentration_ratio_topn=concentration_ratio_topn,
+        entropy_alphas=entropy_alphas,
     )
 
 

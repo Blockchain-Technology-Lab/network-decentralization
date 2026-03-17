@@ -103,6 +103,29 @@ def get_concentration_ratio_topn():
     return values if values else [1, 3]
 
 
+def get_entropy_alphas():
+    """
+    Retrieves alpha values used by entropy metrics.
+    :returns: list of unique floats (defaults to [1])
+    """
+    params = get_config_data().get('metrics_parameters', {})
+    raw_alphas = params.get('entropy_alpha', [1])
+
+    if not isinstance(raw_alphas, list):
+        raw_alphas = [raw_alphas]
+
+    values = []
+    for value in raw_alphas:
+        try:
+            parsed = float(value)
+            if parsed not in values:
+                values.append(parsed)
+        except (TypeError, ValueError):
+            continue
+
+    return values if values else [1]
+
+
 def get_without_tor_ledgers():
     """
     Retrieves the target ledgers for generating *_without_tor CSV files.
