@@ -42,13 +42,6 @@ def get_mode():
     """
     return get_config_data()['mode']
 
-def get_date():
-    """
-    Retrieves data regarding the date to use
-    :returns: the date to be used by distribution.py
-    """
-    return get_config_data()['date']
-
 def get_active():
     """
     Retrieves data regarding the packets to clean up 
@@ -66,64 +59,80 @@ def get_concurrency():
 
 def get_metrics_network():
     """
-    Retrieves the list of metrics to compute for network analysis (organizations)
-    :returns: a list of metric names to compute
+    Retrieves the list of metrics to compute for network analysis (organizations).
+    Supports either a list (e.g., ['hhi', 'nakamoto']) or a dictionary
+    (e.g., {'concentration_ratio': [1, 3]}), which is expanded to tokens like
+    'concentration_ratio=1' and 'concentration_ratio=3'.
+    :returns: a list of metric tokens to compute
     """
-    return get_config_data().get('network_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Concentration Ratio'])
+    default = {
+        'hhi': None,
+        'nakamoto': None,
+        'entropy': None,
+        'concentration_ratio': None,
+    }
+    return _expand_metric_config(get_config_data().get('network_metrics', default), default)
 
 
 def get_metrics_geo():
     """
-    Retrieves the list of metrics to compute for geographic analysis (countries)
-    :returns: a list of metric names to compute
+    Retrieves the list of metrics to compute for geographic analysis (countries).
+    Supports either a list (e.g., ['hhi', 'nakamoto']) or a dictionary
+    (e.g., {'concentration_ratio': [1, 3]}), which is expanded to tokens like
+    'concentration_ratio=1' and 'concentration_ratio=3'.
+    :returns: a list of metric tokens to compute
     """
-    return get_config_data().get('geo_metrics', ['HHI', 'Nakamoto', 'Entropy', 'Concentration Ratio'])
+    default = {
+        'hhi': None,
+        'nakamoto': None,
+        'entropy': None,
+        'concentration_ratio': None,
+    }
+    return _expand_metric_config(get_config_data().get('geo_metrics', default), default)
 
 
-def get_concentration_ratio_topn():
+def _expand_metric_config(raw_metrics, default_metrics):
     """
-    Retrieves top-N values used by concentration-ratio based metrics.
-    :returns: list of unique positive integers (defaults to [1, 3])
+    Expands metric configuration into a flat list of metric tokens.
+    Example: {'entropy': [1, 2]} -> ['entropy=1', 'entropy=2']
     """
-    params = get_config_data().get('metrics_parameters', {})
-    raw_topn = params.get('concentration_ratio_topn', [1, 3])
+    metrics = raw_metrics if raw_metrics is not None else default_metrics
 
-    if not isinstance(raw_topn, list):
-        raw_topn = [raw_topn]
+    if isinstance(metrics, list):
+        return [str(metric).strip() for metric in metrics if str(metric).strip()]
 
-    values = []
-    for value in raw_topn:
-        try:
-            parsed = int(value)
-            if parsed > 0 and parsed not in values:
-                values.append(parsed)
-        except (TypeError, ValueError):
+    if not isinstance(metrics, dict):
+        return []
+
+    expanded = []
+    for metric_name, parameter_values in metrics.items():
+        name = str(metric_name).strip()
+        if not name:
             continue
 
-    return values if values else [1, 3]
-
-
-def get_entropy_alphas():
-    """
-    Retrieves alpha values used by entropy metrics.
-    :returns: list of unique floats (defaults to [1])
-    """
-    params = get_config_data().get('metrics_parameters', {})
-    raw_alphas = params.get('entropy_alpha', [1])
-
-    if not isinstance(raw_alphas, list):
-        raw_alphas = [raw_alphas]
-
-    values = []
-    for value in raw_alphas:
-        try:
-            parsed = float(value)
-            if parsed not in values:
-                values.append(parsed)
-        except (TypeError, ValueError):
+        if parameter_values is None:
+            expanded.append(name)
             continue
 
-    return values if values else [1]
+        if isinstance(parameter_values, list):
+            values = parameter_values
+        else:
+            values = [parameter_values]
+
+        unique_values = []
+        for value in values:
+            rendered = None if value is None else str(value).strip()
+            if rendered is not None and rendered not in unique_values:
+                unique_values.append(rendered)
+
+        if not unique_values:
+            expanded.append(name)
+            continue
+
+        for rendered in unique_values:
+            expanded.append(f"{name}={rendered}")
+
+    return expanded
 
 
 def get_without_tor_ledgers():
