@@ -9,7 +9,7 @@ import pathlib
 import sys
 from ast import literal_eval
 
-from network_decentralization.helper import get_metrics_network, get_metrics_geo
+from network_decentralization.helper import get_metrics_network, get_metrics_geo, get_without_tor_ledgers
 from network_decentralization.metrics.herfindahl_hirschman_index import compute_hhi
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
@@ -148,7 +148,7 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names):
     """
     Process all CSV files matching a pattern and output metrics.
     Appends results to existing files or creates new ones.
-    For bitcoin, uses the _without_tor versions if they exist.
+    Uses _without_tor versions when configured in parse_parameters.without_tor_ledgers.
     
     :param output_dir: Path to the output directory
     :param file_pattern: Glob pattern for CSV files (e.g., 'organizations_*.csv')
@@ -156,20 +156,25 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names):
     :param metric_names: List of metric names to compute and output
     """
     metric_columns = build_metric_columns(metric_names)
+    without_tor_ledgers = set(get_without_tor_ledgers() or [])
 
-    # For bitcoin, prefer the _without_tor variant if it exists; skip the regular bitcoin file in that case
+    # Prefer configured _without_tor variants and skip the corresponding regular file when both exist.
     file_type = 'countries' if is_country else 'organizations'
-    without_tor_path = output_dir / f"{file_type}_bitcoin_without_tor.csv"
-    skip_regular_bitcoin = without_tor_path.exists()
 
     csv_files = sorted(output_dir.glob(file_pattern))
     
     for csv_path in csv_files:
-        if csv_path.name == f"{file_type}_bitcoin.csv" and skip_regular_bitcoin:
-            continue
-            
         try:
             ledger = get_ledger_name(csv_path)
+
+            regular_path = output_dir / f"{file_type}_{ledger}.csv"
+            without_tor_path = output_dir / f"{file_type}_{ledger}_without_tor.csv"
+            is_regular_file = csv_path.name == regular_path.name
+            has_without_tor_variant = without_tor_path.exists()
+
+            if is_regular_file and ledger in without_tor_ledgers and has_without_tor_variant:
+                continue
+
             date, distribution = read_csv_data(csv_path)
             metrics = compute_metrics(distribution, metric_columns)
             

@@ -65,13 +65,7 @@ def get_metrics_network():
     'concentration_ratio=1' and 'concentration_ratio=3'.
     :returns: a list of metric tokens to compute
     """
-    default = {
-        'hhi': None,
-        'nakamoto': None,
-        'entropy': None,
-        'concentration_ratio': None,
-    }
-    return _expand_metric_config(get_config_data().get('network_metrics', default), default)
+    return _expand_metric_config(get_config_data().get('network_metrics'))
 
 
 def get_metrics_geo():
@@ -82,21 +76,18 @@ def get_metrics_geo():
     'concentration_ratio=1' and 'concentration_ratio=3'.
     :returns: a list of metric tokens to compute
     """
-    default = {
-        'hhi': None,
-        'nakamoto': None,
-        'entropy': None,
-        'concentration_ratio': None,
-    }
-    return _expand_metric_config(get_config_data().get('geo_metrics', default), default)
+    return _expand_metric_config(get_config_data().get('geo_metrics'))
 
 
-def _expand_metric_config(raw_metrics, default_metrics):
+def _expand_metric_config(raw_metrics):
     """
     Expands metric configuration into a flat list of metric tokens.
     Example: {'entropy': [1, 2]} -> ['entropy=1', 'entropy=2']
     """
-    metrics = raw_metrics if raw_metrics is not None else default_metrics
+    metrics = raw_metrics
+
+    if metrics is None:
+        return []
 
     if isinstance(metrics, list):
         return [str(metric).strip() for metric in metrics if str(metric).strip()]
