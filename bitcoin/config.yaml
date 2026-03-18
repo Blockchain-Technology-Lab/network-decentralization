@@ -10,9 +10,6 @@ mode:
   - Countries
   - Organizations
 
-# Used by distribution.py to know which column to distribute
-date: '2025-03-28'
-
 execution_parameters:
   concurrency: 100
 
@@ -23,3 +20,26 @@ last_time_active: 1
 # The first path will be used to write newly created dbs and the output of runs
 output_directories:  
   - ./output
+
+# Metrics for network analysis (organizations)
+network_metrics:
+  hhi:
+  nakamoto_coefficient:
+  concentration_ratio:
+    - 1
+    - 3
+
+# Metrics for geographic analysis (countries)
+geo_metrics:
+  hhi:
+  nakamoto_coefficient:
+  entropy:
+    - 1
+  concentration_ratio:
+    - 1
+    - 3
+
+# Parameters for parsing/output generation
+parse_parameters:
+  without_tor_ledgers:
+    - bitcoin

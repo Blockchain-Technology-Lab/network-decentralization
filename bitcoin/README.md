@@ -14,6 +14,7 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 2. **Data Collection:** Scripts collect data about nodes like IP addresses and client versions.
 3. **Data Parsing:** `parse.py` formats raw logs into structured files.
 4. **Visualisation:** `plot.py` generates several graphs.
+5. **Metrics Computation:** `compute_metrics.py` calculates decentralisation metrics.
 
 ---
 
@@ -27,11 +28,8 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 - **`parse.py`**  
   Processes raw data (e.g., logs from crawling) into structured formats (JSON, CSV) for easier analysis and plotting.
 
-- **`analyze.py`** (Not in use)  
-  Analyses datasets to extract decentralisation metrics.
-
-- **`distribution.py`**  
-  Distributes Tor nodes among others proportionally, by country or organisation.
+- **`compute_metrics.py`**  
+  Computes network decentralisation metrics (HHI, Nakamoto coefficient, entropy, concentration ratios) from CSV files.
 
 - **`plot.py`**  
   Generates data visualisations.
@@ -39,11 +37,9 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
 - **`collect_geodata.py`**  
   Uses third-party APIs to enrich nodes with geolocation info (country, city, organisation).
 
-- **`collect_osdata.py`** (Not in use)  
-  Identifies the operating system running on nodes.
-
 - **`cleanup_dead_nodes.py`**  
   Scans stored node datasets to remove offline or unreachable nodes.
+
 
 ### Automation & Configuration
 
@@ -92,6 +88,7 @@ The scripts generate:
 - Parsed node datasets (CSV, JSON)
 - Geolocation-enriched data
 - Plots and charts in PNG
+- Computed metrics in `output_organizations_*.csv` and `output_countries_*.csv` files
 
 ---
 
@@ -100,15 +97,13 @@ The scripts generate:
 ```
 bitcoin/
 │
-├── analyze.py
 ├── automation.sh
 ├── cleanup_dead_nodes.py
 ├── collect_geodata.py
-├── collect_osdata.py
 ├── crawl.py
-├── distribution.py
 ├── parse.py
 ├── plot.py
+├── compute_metrics.py
 │
 ├── config.yaml
 ├── requirements.txt
@@ -121,7 +116,12 @@ bitcoin/
 │   ├── collect.py
 │   ├── constants.py
 │   ├── helper.py
-│   └── protocol.py
+│   ├── protocol.py
+│   └── metrics/
+│       ├── concentration_ratio.py
+│       ├── entropy.py
+│       ├── herfindahl_hirschman_index.py
+│       └── nakamoto_coefficient.py
 │
 └── seed_info/
     ├── bitcoin.json

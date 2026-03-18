@@ -8,14 +8,13 @@ do
 python3 crawl.py # comment this line if new data must not be gathered
 python3 cleanup_dead_nodes.py
 python3 collect_geodata.py
-#python3 collect_osdata.py # not in use
 python3 parse.py
-python3 distribution.py
 python3 plot.py
+python3 compute_metrics.py
 
 # The following 2 lines create a folder and move all png and csv files to it
 mkdir output/"$(date +%Y-%m-%d)"
-mv -t output/"$(date +%Y-%m-%d)" output/*.png output/*.csv
+mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip,discovery,peerstore}*.csv output/response_length.json output/*.png 2>/dev/null || true
 
 sleep 7d # will repeat the whole process every X days
 

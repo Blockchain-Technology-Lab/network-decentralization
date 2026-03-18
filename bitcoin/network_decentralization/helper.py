@@ -42,13 +42,6 @@ def get_mode():
     """
     return get_config_data()['mode']
 
-def get_date():
-    """
-    Retrieves data regarding the date to use
-    :returns: the date to be used by distribution.py
-    """
-    return get_config_data()['date']
-
 def get_active():
     """
     Retrieves data regarding the packets to clean up 
@@ -62,6 +55,93 @@ def get_concurrency():
     :returns: integer
     """
     return get_config_data()['execution_parameters']['concurrency']
+
+
+def get_metrics_network():
+    """
+    Retrieves the list of metrics to compute for network analysis (organizations).
+    Supports either a list (e.g., ['hhi', 'nakamoto']) or a dictionary
+    (e.g., {'concentration_ratio': [1, 3]}), which is expanded to tokens like
+    'concentration_ratio=1' and 'concentration_ratio=3'.
+    :returns: a list of metric tokens to compute
+    """
+    return _expand_metric_config(get_config_data().get('network_metrics'))
+
+
+def get_metrics_geo():
+    """
+    Retrieves the list of metrics to compute for geographic analysis (countries).
+    Supports either a list (e.g., ['hhi', 'nakamoto']) or a dictionary
+    (e.g., {'concentration_ratio': [1, 3]}), which is expanded to tokens like
+    'concentration_ratio=1' and 'concentration_ratio=3'.
+    :returns: a list of metric tokens to compute
+    """
+    return _expand_metric_config(get_config_data().get('geo_metrics'))
+
+
+def _expand_metric_config(raw_metrics):
+    """
+    Expands metric configuration into a flat list of metric tokens.
+    Example: {'entropy': [1, 2]} -> ['entropy=1', 'entropy=2']
+    """
+    metrics = raw_metrics
+
+    if metrics is None:
+        return []
+
+    if isinstance(metrics, list):
+        return [str(metric).strip() for metric in metrics if str(metric).strip()]
+
+    if not isinstance(metrics, dict):
+        return []
+
+    expanded = []
+    for metric_name, parameter_values in metrics.items():
+        name = str(metric_name).strip()
+        if not name:
+            continue
+
+        if parameter_values is None:
+            expanded.append(name)
+            continue
+
+        if isinstance(parameter_values, list):
+            values = parameter_values
+        else:
+            values = [parameter_values]
+
+        unique_values = []
+        for value in values:
+            rendered = None if value is None else str(value).strip()
+            if rendered is not None and rendered not in unique_values:
+                unique_values.append(rendered)
+
+        if not unique_values:
+            expanded.append(name)
+            continue
+
+        for rendered in unique_values:
+            expanded.append(f"{name}={rendered}")
+
+    return expanded
+
+
+def get_without_tor_ledgers():
+    """
+    Retrieves the target ledgers for generating *_without_tor CSV files.
+    :returns: list of ledger names, or None when not configured
+    """
+    params = get_config_data().get('parse_parameters', {})
+    raw_ledgers = params.get('without_tor_ledgers')
+
+    if raw_ledgers is None:
+        return None
+
+    if not isinstance(raw_ledgers, list):
+        raw_ledgers = [raw_ledgers]
+
+    ledgers = [ledger.strip() for ledger in raw_ledgers if isinstance(ledger, str) and ledger.strip()]
+    return list(dict.fromkeys(ledgers)) or None
 
 
 def get_output_directory(ledger=None, dead=False):
