@@ -29,7 +29,7 @@ This component of the project analyses the decentralisation of Bitcoin, Bitcoin 
   Processes raw data (e.g., logs from crawling) into structured formats (JSON, CSV) for easier analysis and plotting.
 
 - **`compute_metrics.py`**  
-  Computes network decentralisation metrics (HHI, Nakamoto coefficient, entropy, max power ratio) from CSV files.
+  Computes network decentralisation metrics (HHI, Nakamoto coefficient, entropy, concentration ratios) from CSV files.
 
 - **`plot.py`**  
   Generates data visualisations.

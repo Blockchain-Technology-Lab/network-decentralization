@@ -7,7 +7,9 @@ Processes both organization and country CSV files and outputs metrics in CSV for
 import csv
 import pathlib
 import sys
-from network_decentralization.helper import get_metrics_network, get_metrics_geo, get_concentration_ratio_topn
+from ast import literal_eval
+
+from network_decentralization.helper import get_metrics_network, get_metrics_geo, get_without_tor_ledgers
 from network_decentralization.metrics.herfindahl_hirschman_index import compute_hhi
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
@@ -60,75 +62,121 @@ def get_ledger_name(csv_path):
     return '_'.join(parts[1:])
 
 
-def compute_metrics(distribution, metric_names, concentration_ratio_topn):
+def normalize_metric_name(metric_name):
+    """Normalizes metric names from config into registry keys."""
+    if metric_name is None:
+        return ''
+    return str(metric_name).strip().lower().replace('-', '_').replace(' ', '_')
+
+
+def parse_metric_spec(metric_spec):
+    """Parses metric token strings like 'entropy=1' into (token, name, parameter)."""
+    token = str(metric_spec).strip()
+    if not token:
+        return None
+
+    if '=' not in token:
+        return token, normalize_metric_name(token), None
+
+    raw_name, raw_parameter = token.split('=', 1)
+    normalized_name = normalize_metric_name(raw_name)
+    parameter_text = raw_parameter.strip()
+    parameter_value = parse_metric_parameter(parameter_text)
+    return token, normalized_name, parameter_value
+
+
+def parse_metric_parameter(parameter_text):
+    """Parses metric parameter values from config strings into Python values."""
+    if parameter_text is None:
+        return None
+
+    text = str(parameter_text).strip()
+    if not text:
+        return None
+
+    try:
+        return literal_eval(text)
+    except (ValueError, SyntaxError):
+        return text
+
+
+def build_metric_columns(metric_specs):
+    """
+    Builds ordered metric specs from configured metric tokens.
+    :param metric_specs: list of metric tokens (e.g., ['hhi', 'entropy=1'])
+    :returns: list of tuples (metric_token, metric_name, parameter_value)
+    """
+    columns = []
+    for metric_spec in metric_specs:
+        parsed = parse_metric_spec(metric_spec)
+        if parsed is None:
+            continue
+
+        metric_token, metric_name, parameter_value = parsed
+        columns.append((metric_token, metric_name, parameter_value))
+
+    return columns
+
+
+def compute_metrics(distribution, metric_columns):
     """
     Compute specified metrics for a given distribution.
     
     :param distribution: Sorted list of entity counts (descending order)
-    :param metric_names: List of metric names to compute (e.g., ['HHI', 'Nakamoto', 'Entropy'])
-    :param concentration_ratio_topn: list of top-N parameters for concentration ratio metrics
+    :param metric_columns: list of tuples (metric_token, metric_name, parameter_value)
     :return: Dictionary with computed metric values
     """
     metrics = {}
 
-    # Mapping of metric display names to computation functions
-    # Concentration Ratio is handled separately because one metric name expands to multiple outputs (one per configured top-N value).
-    metric_map = {
-        'HHI': ('hhi', compute_hhi),
-        'Nakamoto': ('nakamoto', compute_nakamoto_coefficient),
-        'Entropy': ('entropy', lambda d: compute_entropy(d, alpha=1)),
-    }
-    
-    for metric_name in metric_names:
-        # Keep legacy 'Max Power Ratio' as an alias so older configs still work.
-        if metric_name in ('Concentration Ratio', 'Max Power Ratio'):
-            for topn in concentration_ratio_topn:
-                key = f"concentration_ratio_top_{topn}"
-                try:
-                    metrics[key] = compute_concentration_ratio(distribution, topn=topn)
-                except Exception as e:
-                    print(f"Error computing {metric_name} (topn={topn}): {e}", file=sys.stderr)
-                    metrics[key] = None
-            continue
+    for metric_token, metric_name, parameter_value in metric_columns:
+        function_name = f"compute_{metric_name}"
 
-        if metric_name in metric_map:
-            key, func = metric_map[metric_name]
-            try:
-                metrics[key] = func(distribution)
-            except Exception as e:
-                print(f"Error computing {metric_name}: {e}", file=sys.stderr)
-                metrics[key] = None
+        try:
+            function = eval(function_name)
+            if parameter_value is None:
+                metrics[metric_token] = function(distribution)
+            else:
+                metrics[metric_token] = function(distribution, parameter_value)
+        except Exception as e:
+            print(f"Error computing {metric_token}: {e}", file=sys.stderr)
+            metrics[metric_token] = None
     
     return metrics
 
 
-def process_csv_files(output_dir, file_pattern, is_country, metric_names, concentration_ratio_topn):
+def process_csv_files(output_dir, file_pattern, is_country, metric_names):
     """
     Process all CSV files matching a pattern and output metrics.
     Appends results to existing files or creates new ones.
-    For bitcoin, uses the _without_tor versions if they exist.
+    Uses _without_tor versions when configured in parse_parameters.without_tor_ledgers.
     
     :param output_dir: Path to the output directory
     :param file_pattern: Glob pattern for CSV files (e.g., 'organizations_*.csv')
     :param is_country: Boolean to indicate if processing country files
     :param metric_names: List of metric names to compute and output
-    :param concentration_ratio_topn: list of top-N parameters for concentration ratio metrics
     """
-    # For bitcoin, prefer the _without_tor variant if it exists; skip the regular bitcoin file in that case
+    metric_columns = build_metric_columns(metric_names)
+    without_tor_ledgers = set(get_without_tor_ledgers() or [])
+
+    # Prefer configured _without_tor variants and skip the corresponding regular file when both exist.
     file_type = 'countries' if is_country else 'organizations'
-    without_tor_path = output_dir / f"{file_type}_bitcoin_without_tor.csv"
-    skip_regular_bitcoin = without_tor_path.exists()
 
     csv_files = sorted(output_dir.glob(file_pattern))
     
     for csv_path in csv_files:
-        if csv_path.name == f"{file_type}_bitcoin.csv" and skip_regular_bitcoin:
-            continue
-            
         try:
             ledger = get_ledger_name(csv_path)
+
+            regular_path = output_dir / f"{file_type}_{ledger}.csv"
+            without_tor_path = output_dir / f"{file_type}_{ledger}_without_tor.csv"
+            is_regular_file = csv_path.name == regular_path.name
+            has_without_tor_variant = without_tor_path.exists()
+
+            if is_regular_file and ledger in without_tor_ledgers and has_without_tor_variant:
+                continue
+
             date, distribution = read_csv_data(csv_path)
-            metrics = compute_metrics(distribution, metric_names, concentration_ratio_topn)
+            metrics = compute_metrics(distribution, metric_columns)
             
             # Determine output filename and metric column mapping
             file_type = 'countries' if is_country else 'organizations'
@@ -136,21 +184,7 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
             output_path = output_dir / output_filename
             file_exists = output_path.exists()
             
-            # Build output metric columns from selected metrics.
-            metric_columns = []
-            for metric_name in metric_names:
-                # Keep legacy 'Max Power Ratio' as an alias so older configs still work.
-                if metric_name in ('Concentration Ratio', 'Max Power Ratio'):
-                    for topn in concentration_ratio_topn:
-                        metric_columns.append((f"Concentration Ratio (Top {topn})", f"concentration_ratio_top_{topn}"))
-                elif metric_name == 'HHI':
-                    metric_columns.append(('HHI', 'hhi'))
-                elif metric_name == 'Nakamoto':
-                    metric_columns.append(('Nakamoto', 'nakamoto'))
-                elif metric_name == 'Entropy':
-                    metric_columns.append(('Entropy', 'entropy'))
-
-            header = ['ledger', 'date', 'clustering'] + [column[0] for column in metric_columns]
+            header = ['ledger', 'date', 'clustering'] + [metric_token for metric_token, _, _ in metric_columns]
             
             # Write header and data (append if exists)
             with open(output_path, 'a', newline='', encoding='utf-8') as f:
@@ -160,8 +194,8 @@ def process_csv_files(output_dir, file_pattern, is_country, metric_names, concen
                 
                 # Build row with metric values in the same order as header
                 row = [ledger, date, 'False']
-                for _, metric_key in metric_columns:
-                    value = metrics.get(metric_key)
+                for metric_token, _, _ in metric_columns:
+                    value = metrics.get(metric_token)
                     if value is None:
                         row.append('')
                     elif isinstance(value, float):
@@ -186,7 +220,6 @@ def main():
     # Load metric names from config using helper functions
     network_metrics = get_metrics_network()
     geo_metrics = get_metrics_geo()
-    concentration_ratio_topn = get_concentration_ratio_topn()
     
     output_dir = pathlib.Path(__file__).parent / 'output'
     
@@ -199,7 +232,6 @@ def main():
         'organizations_*.csv',
         is_country=False,
         metric_names=network_metrics,
-        concentration_ratio_topn=concentration_ratio_topn,
     )
     
     # Process country files with geo metrics
@@ -208,7 +240,6 @@ def main():
         'countries_*.csv',
         is_country=True,
         metric_names=geo_metrics,
-        concentration_ratio_topn=concentration_ratio_topn,
     )
 
 
