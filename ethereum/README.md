@@ -59,7 +59,7 @@ Parameters can be modified in `config.yaml`.
   Generates data visualisations.
 
 - **`compute_metrics.py`**  
-  Reads parsed CSV distributions and computes metrics (`HHI`, `Nakamoto`, `Entropy`, `Concentration Ratio`) into output CSV files.
+  Reads parsed CSV distributions and computes metrics (HHI, Nakamoto, Entropy, Concentration Ratio) into output CSV files.
 
 - **`collect_geodata.py`**  
   Uses third-party APIs to enrich nodes with geolocation info (country, city, organisation).
