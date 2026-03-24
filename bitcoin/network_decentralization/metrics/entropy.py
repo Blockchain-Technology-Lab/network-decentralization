@@ -5,10 +5,6 @@ from network_decentralization.metrics.total_entities import compute_total_entiti
 def compute_entropy(distribution, alpha):
     """
     Calculates the entropy of an entity distribution.
-    Pi is the relative frequency of each entity.
-    Renyi entropy: 1/(1-alpha) * log2 (sum (Pi**alpha))
-    Shannon entropy (alpha=1): −sum P(Si) log2 (Pi)
-    Min entropy (alpha=-1): -log max Pi
     :param distribution: list of non-negative counts per entity, sorted in descending order
     :param alpha: the entropy parameter (depending on its value the corresponding entropy measure is used)
     :returns: a float that represents the entropy of the data or None if the data is empty
