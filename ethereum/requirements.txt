@@ -1,5 +1,5 @@
 gevent>=24.2.1
-requests>=2.32.3
+requests>=2.32.4
 PyYAML>=6.0.1
 dnspython>=2.6.1
 PySocks>=1.7.1
