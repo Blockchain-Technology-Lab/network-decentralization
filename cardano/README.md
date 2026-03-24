@@ -4,7 +4,7 @@ Automated pipeline to analyze the distribution of Cardano relay nodes using Bloc
 
 ## Overview
 
-This pipeline extracts IP addresses from Cardano relay data, queries geolocation APIs, and generates visual analytics showing the distribution of nodes by country, organization, and ASN.
+This pipeline extracts IP addresses from Cardano relay data, queries geolocation APIs, and generates visual analytics showing the distribution of nodes by country, organization, and ASN. It also computes decentralization metrics from parsed country/organization distributions.
 
 ## Requirements
 
@@ -53,12 +53,13 @@ If the environment variable is not set, the pipeline will display an error and e
 python run.py
 ```
 
-This will execute all 5 steps:
+This will execute all 6 steps:
 1. Collect relay node data
 2. Resolve relay DNS names
 3. Collect geolocation data
 4. Parse data into CSVs
-5. Generate plots
+5. Compute decentralization metrics
+6. Generate plots
 
 ## Files
 
@@ -67,6 +68,7 @@ This will execute all 5 steps:
 - **`resolve_dns.py`** - Resolves relay DNS names and writes output/dns_resolved.json
 - **`collect_geodata.py`** - Queries geolocation APIs (ip-api.com, ipapi.is) for IP metadata
 - **`parse.py`** - Parses geodata and creates CSV files for analysis
+- **`compute_metrics.py`** - Computes decentralization metrics from parsed country/organization CSV files
 - **`plot.py`** - Generates pie charts showing distribution
 - **`run.py`** - Master script that runs all steps in sequence
 
@@ -82,6 +84,8 @@ Apart from `blockfrost_pools_relays.json`, saved in the main directory, all outp
 - `countries_cardano.csv` - Node distribution by country
 - `organizations_cardano.csv` - Node distribution by hosting organization
 - `asn_cardano.csv` - Node distribution by Autonomous System Number
+- `output_countries_cardano.csv` - Computed metrics for country distributions
+- `output_organizations_cardano.csv` - Computed metrics for organization distributions
 
 ### PNG Files
 - `countries_cardano.png` - Pie chart of nodes by country
