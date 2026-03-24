@@ -1,8 +1,41 @@
 import requests
 import time
 import logging
+import pathlib
+from yaml import safe_load
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
+
+
+ROOT_DIR = pathlib.Path(__file__).resolve().parent
+with open(ROOT_DIR / "config.yaml") as f:
+    config = safe_load(f)
+
+
+def get_config_data():
+    """
+    Reads Cardano configuration data from config.yaml.
+    :returns: dictionary of configuration keys and values
+    """
+    return config
+
+
+def get_mode():
+    """
+    Retrieves selected parsing/plotting modes.
+    :returns: list of mode strings (e.g., Countries, Organizations, ASN)
+    """
+    return get_config_data().get('mode', ['Countries', 'Organizations', 'ASN'])
+
+
+def get_output_directory():
+    """
+    Retrieves and creates the configured output directory.
+    :returns: pathlib.Path to output directory
+    """
+    output_dir = pathlib.Path(get_config_data().get('output_directory', './output')).resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
 
 
 def get_ip_geodata(ip_addr):

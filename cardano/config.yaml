@@ -1,0 +1,9 @@
+# Modes to process in parse.py and plot.py.
+mode:
+  - Countries
+  - Organizations
+  - ASN
+
+# Output directory for generated JSON/CSV/PNG artifacts.
+# Can be absolute or relative to the cardano folder.
+output_directory: ./output

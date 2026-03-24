@@ -22,6 +22,7 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import datetime
 import pandas as pd
+import helper as hlp
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -98,7 +99,7 @@ def cluster_org_name(name):
 def get_geodata(mode='Countries'):
     """Extract geographic data from geodata JSON."""
     ledger = 'cardano'
-    output_dir = Path(__file__).parent / 'output'
+    output_dir = hlp.get_output_directory()
     geodata_file = output_dir / 'geodata' / f'{ledger}.json'
     nodes_file = output_dir / 'cardano_extracted_nodes.json'
     
@@ -227,7 +228,7 @@ def parse_geography(mode='Countries'):
         else:
             geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
     
-    output_dir = Path(__file__).parent / 'output'
+    output_dir = hlp.get_output_directory()
     output_dir.mkdir(parents=True, exist_ok=True)
     
     filename = output_dir / f'{mode.lower()}_{ledger}.csv'
@@ -269,7 +270,7 @@ def parse_geography(mode='Countries'):
 
 
 def main():
-    modes = ['Countries', 'Organizations', 'ASN']
+    modes = hlp.get_mode()
     
     for mode in modes:
         try:

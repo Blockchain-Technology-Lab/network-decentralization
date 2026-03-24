@@ -4,7 +4,7 @@ Plot Cardano distribution charts.
 import matplotlib.pyplot as plt
 import csv
 import logging
-from pathlib import Path
+import helper as hlp
 
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
@@ -12,7 +12,7 @@ logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:
 def plot_pie_chart(plot_type='Countries'):
     """Create pie chart for country/organization/ASN distribution."""
     ledger = 'cardano'
-    output_dir = Path(__file__).parent / 'output'
+    output_dir = hlp.get_output_directory()
     
     csv_file = output_dir / f'{plot_type.lower()}_{ledger}.csv'
     
@@ -80,7 +80,7 @@ def plot_pie_chart(plot_type='Countries'):
 
 
 def main():
-    modes = ['Countries', 'Organizations', 'ASN']
+    modes = hlp.get_mode()
     
     for mode in modes:
         try:
