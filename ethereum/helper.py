@@ -1,5 +1,4 @@
 from yaml import safe_load
-import json
 import pathlib
 import requests
 import time
