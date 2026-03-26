@@ -24,7 +24,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-This ensures that all dependencies are installed in an isolated environment. The `run.py` script expects the `.venv` environment to be present.
+This ensures that all dependencies are installed in an isolated environment. The automation script expects the `.venv` environment to be present.
 
 To run the pipeline you need a Blockfrost API key. To get one, follow these steps:
 - Go to the Blockfrost website: https://blockfrost.io/
@@ -49,8 +49,11 @@ If the environment variable is not set, the pipeline will display an error and e
 
 ### Run the Complete Pipeline
 
-```powershell
-python run.py
+The `automation.sh` script runs the full pipeline in a loop, archives generated CSV/PNG outputs into a date-based folder under `output/`, and waits 7 days before repeating.
+
+Run:
+```bash
+./automation.sh
 ```
 
 This will execute all 6 steps:
@@ -64,6 +67,7 @@ This will execute all 6 steps:
 ## Files
 
 ### Pipeline Scripts
+- **`automation.sh`** - Repeats the full pipeline every 7 days and archives CSV/PNG outputs into `output/YYYY-MM-DD/`
 - **`collect.py`** - Collects relay node data using Blockfrost
 - **`resolve_dns.py`** - Resolves relay DNS names and writes output/dns_resolved.json
 - **`collect_geodata.py`** - Queries geolocation APIs (ip-api.com, ipapi.is) for IP metadata
@@ -86,6 +90,8 @@ Apart from `blockfrost_pools_relays.json`, saved in the main directory, all outp
 - `asn_cardano.csv` - Node distribution by Autonomous System Number
 - `output_countries_cardano.csv` - Computed metrics for country distributions
 - `output_organizations_cardano.csv` - Computed metrics for organization distributions
+
+When running via `automation.sh`, the generated CSV and PNG files are moved into `output/YYYY-MM-DD/` after each run.
 
 ### PNG Files
 - `countries_cardano.png` - Pie chart of nodes by country
