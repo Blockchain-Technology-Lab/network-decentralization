@@ -2,7 +2,7 @@
 mode:
   - Countries
   - Organizations
-  - ASN
+#  - ASN
 
 # Metrics for network analysis (organizations)
 network_metrics:
