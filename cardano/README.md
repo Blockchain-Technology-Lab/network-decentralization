@@ -4,7 +4,7 @@ Automated pipeline to analyze the distribution of Cardano relay nodes using Bloc
 
 ## Overview
 
-This pipeline extracts IP addresses from Cardano relay data, queries geolocation APIs, and generates visual analytics showing the distribution of nodes by country, organization, and ASN.
+This pipeline extracts IP addresses from Cardano relay data, queries geolocation APIs, and generates visual analytics showing the distribution of nodes by country, organization, and ASN. It also computes decentralization metrics from parsed country/organization distributions.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-This ensures that all dependencies are installed in an isolated environment. The `run.py` script expects the `.venv` environment to be present.
+This ensures that all dependencies are installed in an isolated environment. The automation script expects the `.venv` environment to be present.
 
 To run the pipeline you need a Blockfrost API key. To get one, follow these steps:
 - Go to the Blockfrost website: https://blockfrost.io/
@@ -49,24 +49,30 @@ If the environment variable is not set, the pipeline will display an error and e
 
 ### Run the Complete Pipeline
 
-```powershell
-python run.py
+The `automation.sh` script runs the full pipeline in a loop, archives generated CSV/PNG outputs into a date-based folder under `output/`, and waits 7 days before repeating.
+
+Run:
+```bash
+./automation.sh
 ```
 
-This will execute all 5 steps:
+This will execute all 6 steps:
 1. Collect relay node data
 2. Resolve relay DNS names
 3. Collect geolocation data
 4. Parse data into CSVs
-5. Generate plots
+5. Compute decentralization metrics
+6. Generate plots
 
 ## Files
 
 ### Pipeline Scripts
+- **`automation.sh`** - Repeats the full pipeline every 7 days and archives CSV/PNG outputs into `output/YYYY-MM-DD/`
 - **`collect.py`** - Collects relay node data using Blockfrost
 - **`resolve_dns.py`** - Resolves relay DNS names and writes output/dns_resolved.json
 - **`collect_geodata.py`** - Queries geolocation APIs (ip-api.com, ipapi.is) for IP metadata
 - **`parse.py`** - Parses geodata and creates CSV files for analysis
+- **`compute_metrics.py`** - Computes decentralization metrics from parsed country/organization CSV files
 - **`plot.py`** - Generates pie charts showing distribution
 - **`run.py`** - Master script that runs all steps in sequence
 
@@ -82,6 +88,10 @@ Apart from `blockfrost_pools_relays.json`, saved in the main directory, all outp
 - `countries_cardano.csv` - Node distribution by country
 - `organizations_cardano.csv` - Node distribution by hosting organization
 - `asn_cardano.csv` - Node distribution by Autonomous System Number
+- `output_countries_cardano.csv` - Computed metrics for country distributions
+- `output_organizations_cardano.csv` - Computed metrics for organization distributions
+
+When running via `automation.sh`, the generated CSV and PNG files are moved into `output/YYYY-MM-DD/` after each run.
 
 ### PNG Files
 - `countries_cardano.png` - Pie chart of nodes by country

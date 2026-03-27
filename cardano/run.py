@@ -54,7 +54,8 @@ def main():
         ('resolve_dns.py', 'Step 2: Resolve DNS names and update dns_resolved.json'),
         ('collect_geodata.py', 'Step 3: Collect geolocation data from APIs'),
         ('parse.py', 'Step 4: Parse geodata and create CSV files'),
-        ('plot.py', 'Step 5: Generate geographic distribution plots'),
+        ('compute_metrics.py', 'Step 5: Compute decentralization metrics from parsed CSV files'),
+        ('plot.py', 'Step 6: Generate geographic distribution plots'),
     ]
     
     results = {}
@@ -80,6 +81,8 @@ def main():
     logging.info('  - countries_cardano.csv (country distribution)')
     logging.info('  - organizations_cardano.csv (organization distribution)')
     logging.info('  - asn_cardano.csv (ASN distribution)')
+    logging.info('  - output_countries_cardano.csv (country metrics)')
+    logging.info('  - output_organizations_cardano.csv (organization metrics)')
     logging.info('  - countries_cardano.png (country pie chart)')
     logging.info('  - organizations_cardano.png (organization pie chart)')
     logging.info('  - asn_cardano.png (ASN pie chart)')
