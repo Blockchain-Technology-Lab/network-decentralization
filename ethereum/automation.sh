@@ -24,7 +24,7 @@ python3 plot.py
 python3 compute_metrics.py
 
 # Push files to GitHub
-python3 push_to_github.py
+#python3 push_to_github.py # script not on GitHub
 
 echo "The tool will run again in "$DAYS" days."
 
