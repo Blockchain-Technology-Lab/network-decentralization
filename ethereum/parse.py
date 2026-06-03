@@ -74,7 +74,8 @@ def analyse_distribution(nodes, layer, mode):
         else: # if the API used for the IP addresses doesn't return any value for the country or the organisation
             geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
 
-    filename = Path(f'./output/{mode.lower()}_{layer}.csv')
+    output_dir = hlp.get_output_directory()
+    filename = output_dir / f'{mode.lower()}_{layer}.csv'
 
     if filename.is_file():
         df = pd.read_csv(filename)
@@ -88,10 +89,10 @@ def analyse_distribution(nodes, layer, mode):
                 df.loc[rows] = [geodata] + [0]*(columns-1)
                 geodata_in_order.append(geodata_counter[geodata])
         df[datetime.today().strftime('%Y-%m-%d')] = geodata_in_order
-        df.to_csv(f'./output/{mode.lower()}_{layer}.csv', index = False)
+        df.to_csv(filename, index = False)
     else:
         geodata_df = pd.DataFrame.from_dict(geodata_counter, orient='index', columns=[datetime.today().strftime('%Y-%m-%d')])
-        geodata_df.to_csv(f'./output/{mode.lower()}_{layer}.csv', index_label = mode)
+        geodata_df.to_csv(filename, index_label = mode)
 
 def cluster_organizations(layer):
     """

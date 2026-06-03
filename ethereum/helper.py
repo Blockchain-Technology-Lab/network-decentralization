@@ -1,4 +1,5 @@
 from yaml import safe_load
+import os
 import pathlib
 import requests
 import time
@@ -38,17 +39,16 @@ def get_mode():
 
 def get_output_directory():
     """
-    Reads the config file and retrieves the output directory
-    :returns: a directory that will contain the output files
+    Require the `OUTPUT_DIRECTORY` env var set by the caller
+    :returns: the path provided by `OUTPUT_DIRECTORY`
     """
-    config = get_config_data()
+    try:
+        output_dir = pathlib.Path(os.environ['OUTPUT_DIRECTORY']).resolve()
+    except KeyError:
+        raise RuntimeError("OUTPUT_DIRECTORY environment variable is not set. Set it in automation.sh and retry.")
 
-    output_dir = [pathlib.Path(db_dir).resolve() for db_dir in config['output_directories']][0]
     if not output_dir.is_dir():
-        output_dir.mkdir()
-        for subdir_type in ['osdata', 'geodata']:
-            subdir = output_dir / subdir_type
-            subdir.mkdir()
+        raise FileNotFoundError(f"OUTPUT_DIRECTORY does not exist: {output_dir}")
 
     return output_dir
 

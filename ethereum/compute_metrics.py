@@ -160,7 +160,7 @@ def main():
     network_metrics = hlp.get_metrics_network()
     geo_metrics = hlp.get_metrics_geo()
 
-    output_dir = pathlib.Path(__file__).parent / "output"
+    output_dir = hlp.get_output_directory()
     if not output_dir.exists():
         print(f"Error: Output directory not found at {output_dir}", file=sys.stderr)
         sys.exit(1)
