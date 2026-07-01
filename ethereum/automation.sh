@@ -4,12 +4,12 @@ source venv/bin/activate # venv is the Python virtual environment where all depe
 
 declare -i DAYS=7
 
-CRAWLER_DIR="$script_dir/crawler"
+CRAWLER_DIR="crawler"
 
 while true
 do
 
-"$CRAWLER_DIR/run.sh" "$@" # comment this line if new data must not be gathered
+( cd "$CRAWLER_DIR" && ./run.sh --guess --identify "$@" ) # comment this line if new data must not be gathered
 
 latest_run="$(ls -td "$CRAWLER_DIR"/results/* 2>/dev/null | head -1 || true)"
 if [ -z "$latest_run" ]; then
