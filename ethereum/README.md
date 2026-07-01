@@ -49,10 +49,10 @@ The crawler workflow runs from the `ethereum` directory, launches `crawler/run.s
 
 ### Core Scripts
 
-- **`dcrawl.nim`**  
+- **`crawler/dcrawl.nim`**  
   Discovers nodes using bootnodes and recursive peer discovery via the Ethereum Discovery protocol. Communicates with peers and gathers peer info.
 
-- **`run.sh`**  
+- **`crawler/run.sh`**  
   Wrapper for the crawler. The automation script calls it with `--guess --identify` and then processes the newest `crawler/results/<timestamp>/` directory.
 
 - **`parse.py`**  
