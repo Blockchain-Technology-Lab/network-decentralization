@@ -8,13 +8,13 @@ NOTE: this project uses another project as a submodule, so it needs to be cloned
 ```bash
 git clone --recurse-submodules git@github.com:Blockchain-Technology-Lab/network-decentralization.git
 ```
-Then, to download Nim dependencies and build the crawler, in the 'ethereum/crawler' folder, run:
+Then, to download Nim dependencies and build the crawler, in the `ethereum/crawler` folder, run:
 ```bash
 make -j4 update
 make -j4
 ```
 Please note that it may take some time.  
-In the 'ethereum' folder, install Python dependencies - preferably in a Python virtual environment - using:
+In the `ethereum` folder, install Python dependencies - preferably in a Python virtual environment - using:
 ```bash
 python3 -m pip install -r requirements.txt
 ```
@@ -27,18 +27,18 @@ chmod +x automation.sh
 
 ## How to run the tool
 
-This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. To run the tool, please see the 'Requirements and setup instructions' section, then use the following command:
+This component of the project analyses the decentralisation of the Ethereum network by exploring it, collecting information about participating nodes and visualising this information through different graphs. The crawler also captures client-identification data and stores the latest results under `crawler/results/<timestamp>/`. To run the tool, please see the 'Requirements and setup instructions' section, then use the following command:
 ```bash
 ./automation.sh
 ```
-Parameters can be modified in `config.yaml`.
+The crawler workflow runs from the `ethereum` directory, launches `crawler/run.sh --guess --identify`, and reads the newest run from `crawler/results/<timestamp>/`, so the automation script should be started from the `ethereum` folder. Parameters can be modified in `config.yaml`.
 
 ---
 
 ## Workflow Overview
 
-1. **Network Crawling:** `dcrawl.nim` tries to discover all nodes participating in the network. This script comes from the [Fast Ethereum Crawler](https://github.com/cskiraly/fast-ethereum-crawler.git).
-2. **Data Collection:** `collect_geodata.py` collects data about nodes like IP addresses and geolocation.
+1. **Network Crawling:** `crawler/run.sh` launches `dcrawl.nim` with `--guess --identify` so discovery and client-identification data are captured together. The crawler itself comes from the [Fast Ethereum Crawler](https://github.com/cskiraly/fast-ethereum-crawler.git).
+2. **Data Collection:** `collect_geodata.py` collects data about nodes like IP addresses and geolocation from the latest crawler run.
 3. **Data Parsing:** `parse.py` formats raw logs into structured files.
 4. **Visualisation:** `plot.py` generates several graphs.
 5. **Metrics Computation:** `compute_metrics.py` computes decentralization metrics from parsed country/organization distributions.
@@ -49,8 +49,11 @@ Parameters can be modified in `config.yaml`.
 
 ### Core Scripts
 
-- **`dcrawl.nim`**  
+- **`crawler/dcrawl.nim`**  
   Discovers nodes using bootnodes and recursive peer discovery via the Ethereum Discovery protocol. Communicates with peers and gathers peer info.
+
+- **`crawler/run.sh`**  
+  Wrapper for the crawler. The automation script calls it with `--guess --identify` and then processes the newest `crawler/results/<timestamp>/` directory.
 
 - **`parse.py`**  
   Processes raw data (e.g., logs from crawling) into structured formats (JSON, CSV) for easier analysis and plotting.
@@ -84,7 +87,7 @@ Parameters can be modified in `config.yaml`.
 
 ## Output
 
-The scripts generate:
+The scripts generate their outputs in the newest `crawler/results/<timestamp>/` directory and also produce:
 - Parsed node datasets (CSV, JSON)
 - Geolocation-enriched data
 - Plots and charts in PNG

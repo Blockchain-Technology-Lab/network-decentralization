@@ -10,9 +10,6 @@ mode:
 execution_parameters:
   concurrency: 100
 
-output_directories:  
-  - ./output
-
 # Metrics for network analysis (organizations)
 network_metrics:
   hhi:

@@ -4,24 +4,28 @@ source venv/bin/activate # venv is the Python virtual environment where all depe
 
 declare -i DAYS=7
 
-BOOTNODE="enr:-Ku4QHqVeJ8PPICcWk1vSn_XcSkjOkNiTg6Fmii5j6vUQgvzMc9L1goFnLKgXqBJspJjIsB91LTOleFmyWWrFVATGngBh2F0dG5ldHOIAAAAAAAAAACEZXRoMpC1MD8qAAAAAP__________gmlkgnY0gmlwhAMRHkWJc2VjcDI1NmsxoQKLVXFOhp2uX6jeT0DvvDpPcU8FWMjQdR4wMuORMhpX24N1ZHCCIyg"
-
-OUTPUTDIR="output"
-[ ! -d "/path/to/dir" ] && mkdir -p "$OUTPUTDIR"
+CRAWLER_DIR="crawler"
 
 while true
 do
 
-build/dcrawl --bootnode="$BOOTNODE" "$@" # comment this line if new data must not be gathered
-mv -t "$OUTPUTDIR" *.csv # the output is moved to the output directory
+( cd "$CRAWLER_DIR" && ./run.sh --guess --identify "$@" ) # comment this line if new data must not be gathered
+
+latest_run="$(ls -td "$CRAWLER_DIR"/results/* 2>/dev/null | head -1 || true)"
+if [ -z "$latest_run" ]; then
+	echo "Error: no crawler results directory was created." >&2
+	exit 1
+fi
+export OUTPUT_DIRECTORY="$latest_run"
+
 python3 collect_geodata.py
 python3 parse.py
 python3 plot.py
 python3 compute_metrics.py
 
-# The following 2 lines create a folder and move all png and csv files to it
-mkdir "$OUTPUTDIR"/"$(date +%Y-%m-%d)"
-mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip,discovery,peerstore}*.csv output/response_length.json output/*.png 2>/dev/null || true
+# Push files to GitHub
+#python3 push_to_github.py # script not on GitHub
+
 echo "The tool will run again in "$DAYS" days."
 
 sleep "$DAYS"d # will repeat the whole process every DAYS days
