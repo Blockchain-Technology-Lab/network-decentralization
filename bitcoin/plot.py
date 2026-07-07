@@ -53,9 +53,11 @@ def geo_plot(plot_type):
     Generates pie charts representing node distribution by a given category
     :param plot_type: Geography, ASN, or Org
     """
-    if 'bitcoin' in LEDGERS:
-        LEDGERS.append('bitcoin_without_tor')
-    for ledger in LEDGERS:
+    ledgers = list(LEDGERS)
+    if 'bitcoin' in ledgers:
+        ledgers.append('bitcoin_without_tor')
+
+    for ledger in ledgers:
         logging.info(f'Plotting {ledger} {plot_type}')
         entries = []
         try:
@@ -92,18 +94,22 @@ def geo_plot(plot_type):
         plt.savefig(f'output/{plot_type.lower()}_{ledger}.png', bbox_inches='tight', dpi=100)
         plt.close(fig)
 
-def version_plot():
+def clients_plot():
     """
-    Generates pie charts showing the distribution of client versions
+    Generates pie charts showing the distribution of clients
     """
-    for ledger in LEDGERS:
+    for ledger in list(LEDGERS):
         logging.info(f'Plotting {ledger} version')
         entries = []
-        with open(f'output/version_{ledger}.csv') as f:
-            csv_reader = csv.reader(f)
-            next(csv_reader)
-            for line in csv_reader:
-                entries.append([line[0], int(line[1])])
+        try:
+            with open(f'output/clients_{ledger}.csv') as f:
+                csv_reader = csv.reader(f)
+                next(csv_reader)
+                for line in csv_reader:
+                    entries.append([line[0], int(line[1])])
+        except FileNotFoundError:
+            logging.info(f'plot.py: FileNotFoundError: output/clients_{ledger}.csv')
+            continue
 
         total_nodes = sum([i[1] for i in entries])
 
@@ -213,6 +219,8 @@ MODES = hlp.get_mode()
 def main():
     for mode in MODES:
         geo_plot(mode)
+    if 'Clients' in MODES:
+        clients_plot()
 
 if __name__ == '__main__':
     main()

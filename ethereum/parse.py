@@ -11,6 +11,24 @@ from datetime import datetime
 logging.basicConfig(format='[%(asctime)s] %(message)s', datefmt='%Y/%m/%d %I:%M:%S %p', level=logging.INFO)
 
 
+def normalise_client_name(client_value):
+    """
+    Normalise a client label to its family name.
+    Examples: 'Geth/v1.15.0' -> 'Geth', 'Lighthouse:4.6.0' -> 'Lighthouse'.
+    """
+    if client_value is None:
+        return 'Unknown'
+
+    client = str(client_value).strip().strip("'\"")
+    if not client or client.lower() in {'nan', 'none', 'unknown'}:
+        return 'Unknown'
+
+    for separator in ('|', '/', ':'):
+        client = client.split(separator, 1)[0].strip()
+
+    return client or 'Unknown'
+
+
 def group_nodes(layer, nodes, mode):
     """
     Groups nodes by geolocation information.
@@ -64,17 +82,86 @@ def analyse_distribution(nodes, layer, mode):
     :param mode: Grouping mode: 'Countries' or 'Organisations'
     """
     logging.info(f'parse.py: Analyzing {layer} {mode}')
-    geodata = group_nodes(layer, nodes, mode)
-    logging.info(f'parse.py: {layer} - Total nodes: {sum([len(val) for val in geodata.values()])}')
+
     geodata_counter = {}
-
-    for key, val in sorted(geodata.items(), key=lambda x: len(x[1]), reverse=True):
-        if key:
-            geodata_counter[key] = len(val)
-        else: # if the API used for the IP addresses doesn't return any value for the country or the organisation
-            geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
-
     output_dir = hlp.get_output_directory()
+    if mode == 'Clients': # Client distribution is derived from agents.csv
+        peerfile = output_dir / 'peerstore.csv'
+        agentsfile = output_dir / 'agents.csv'
+        if peerfile.is_file():
+            peer_df = pd.read_csv(
+                peerfile,
+                engine='python',
+                on_bad_lines='skip',
+                quotechar="'",
+                dtype=str,
+                keep_default_na=False,
+            )
+
+            if 'node_id' not in peer_df.columns:
+                logging.warning(f'parse.py: peerstore.csv has no node_id column; client counts will be empty')
+                peer_df = pd.DataFrame(columns=['node_id'])
+
+            # Filter to the requested layer using the same rule as helper.get_layer().
+            if ' enr' in peer_df.columns:
+                enr_source = peer_df[' enr'].fillna('')
+            elif 'enr' in peer_df.columns:
+                enr_source = peer_df['enr'].fillna('')
+            else:
+                enr_source = pd.Series([''] * len(peer_df), index=peer_df.index)
+
+            layer_mask = enr_source.apply(hlp.get_layer).eq(layer)
+            peer_subset = peer_df[layer_mask].copy()
+
+            if peer_subset.empty:
+                geodata_counter = {'Unknown': 0}
+            else:
+                if agentsfile.is_file():
+                    agents_df = pd.read_csv(
+                        agentsfile,
+                        engine='python',
+                        on_bad_lines='skip',
+                        quotechar="'",
+                        dtype=str,
+                        keep_default_na=False,
+                    )
+                else:
+                    agents_df = pd.DataFrame(columns=['node_id', 'agent_version'])
+
+                if 'node_id' not in agents_df.columns:
+                    agents_df['node_id'] = ''
+                if 'agent_version' not in agents_df.columns:
+                    agents_df['agent_version'] = ''
+
+                agent_lookup = (
+                    agents_df[['node_id', 'agent_version']]
+                    .dropna(subset=['node_id'])
+                    .drop_duplicates('node_id')
+                    .set_index('node_id')['agent_version']
+                    .to_dict()
+                )
+
+                resolved_clients = (
+                    peer_subset['node_id']
+                    .fillna('')
+                    .map(lambda node_id: normalise_client_name(agent_lookup.get(node_id, 'Unknown')))
+                )
+                geodata_counter = resolved_clients.value_counts().to_dict()
+                if 'Unknown' not in geodata_counter:
+                    geodata_counter['Unknown'] = 0
+        else:
+            logging.warning(f'parse.py: peerstore.csv not found in {output_dir}; client counts will be empty')
+    else:
+        geodata = group_nodes(layer, nodes, mode)
+        logging.info(f'parse.py: {layer} - Total nodes: {sum([len(val) for val in geodata.values()])}')
+
+        for key, val in sorted(geodata.items(), key=lambda x: len(x[1]), reverse=True):
+            if key:
+                geodata_counter[key] = len(val)
+            else: # if the API used for the IP addresses doesn't return any value for the country or the organisation
+                geodata_counter["Unknown"] = geodata_counter.get("Unknown", 0) + len(val)
+
+    output_dir = output_dir if 'output_dir' in locals() else hlp.get_output_directory()
     filename = output_dir / f'{mode.lower()}_{layer}.csv'
 
     if filename.is_file():
@@ -110,9 +197,18 @@ def cluster_organizations(layer):
         header = next(reader)  # Read the original header
 
         for row in reader:
+            if len(row) < 2:
+                continue
+
             # Remove surrounding quotes (if any) and extra whitespace
-            count = int(row[1])
+            try:
+                count = int(row[1])
+            except (TypeError, ValueError):
+                continue
+
             name = row[0].replace('"','').replace(',', '')
+            if not name.strip():
+                continue
 
             # Special rule for specific entries
             if 'hetzner' in name.lower():
@@ -126,7 +222,10 @@ def cluster_organizations(layer):
             elif 'ovh' in name.lower(): 
                 first_word = 'OVH'
             else:
-                first_word = name.split()[0]
+                parts = name.split()
+                if not parts:
+                    continue
+                first_word = parts[0]
 
             cluster_totals[first_word] += count
 

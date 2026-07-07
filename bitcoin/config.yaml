@@ -9,6 +9,7 @@ ledgers:
 mode:
   - Countries
   - Organizations
+  - Clients
 
 execution_parameters:
   concurrency: 100
