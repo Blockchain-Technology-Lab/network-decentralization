@@ -11,6 +11,9 @@ python3 run.py
 mkdir output/"$(date +%Y-%m-%d)"
 mv -t output/"$(date +%Y-%m-%d)" output/*.png output/countries_cardano.csv output/organizations_cardano.csv output/asn_cardano.csv 2>/dev/null || true
 
+# Push files to GitHub
+#python3 push_to_github.py # script not on GitHub
+
 sleep 7d # will repeat the whole process every X days
 
 done

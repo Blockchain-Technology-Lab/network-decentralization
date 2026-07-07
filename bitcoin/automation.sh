@@ -16,6 +16,9 @@ python3 compute_metrics.py
 mkdir output/"$(date +%Y-%m-%d)"
 mv -t output/"$(date +%Y-%m-%d)" output/{clients,countries,protocols,organizations,ip,discovery,peerstore}*.csv output/response_length.json output/*.png 2>/dev/null || true
 
+# Push files to GitHub
+#python3 push_to_github.py # script not on GitHub
+
 sleep 7d # will repeat the whole process every X days
 
 done
