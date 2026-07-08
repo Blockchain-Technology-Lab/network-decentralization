@@ -8,10 +8,10 @@ mode:
 network_metrics:
   hhi:
   nakamoto_coefficient:
-  total_entities:
   concentration_ratio:
     - 1
     - 3
+  total_entities:
 
 # Metrics for geographic analysis (countries)
 geo_metrics:
@@ -19,10 +19,10 @@ geo_metrics:
   nakamoto_coefficient:
   entropy:
     - 1
-  total_entities:
   concentration_ratio:
     - 1
     - 3
+  total_entities:
 
 # Output directory for generated JSON/CSV/PNG artifacts.
 # Can be absolute or relative to the cardano folder.

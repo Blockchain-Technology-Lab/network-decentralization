@@ -26,10 +26,10 @@ output_directories:
 network_metrics:
   hhi:
   nakamoto_coefficient:
-  total_entities:
   concentration_ratio:
     - 1
     - 3
+  total_entities:
 
 # Metrics for geographic analysis (countries)
 geo_metrics:
@@ -37,10 +37,10 @@ geo_metrics:
   nakamoto_coefficient:
   entropy:
     - 1
-  total_entities:
   concentration_ratio:
     - 1
     - 3
+  total_entities:
 
 # Parameters for parsing/output generation
 parse_parameters:
