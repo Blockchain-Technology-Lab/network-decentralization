@@ -26,6 +26,8 @@ def normalise_client_name(client_value):
     for separator in ('|', '/', ':'):
         client = client.split(separator, 1)[0].strip()
 
+    client = client[:1].upper() + client[1:]
+
     return client or 'Unknown'
 
 

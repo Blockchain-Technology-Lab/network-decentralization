@@ -292,6 +292,8 @@ def normalise_client_name(client_value):
     elif client == 'MagicBean':
         client = 'Zcash'
 
+    client = client[:1].upper() + client[1:]
+
     return client or 'Unknown'
 
 
