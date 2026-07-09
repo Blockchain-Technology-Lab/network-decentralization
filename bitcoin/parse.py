@@ -285,6 +285,13 @@ def normalise_client_name(client_value):
     for separator in ('|', '/', ':'):
         client = client.split(separator, 1)[0].strip()
 
+    if client == 'Satoshi':
+        client = 'Bitcoin Core'
+    elif client == 'LitecoinCore':
+        client = 'Litecoin Core'
+    elif client == 'MagicBean':
+        client = 'Zcash'
+
     return client or 'Unknown'
 
 
