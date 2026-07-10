@@ -267,7 +267,37 @@ def network(reachable_nodes):
                 csv_writer.writerow([key, len(val)])
 
 
-def version(reachable_nodes, mode):
+def normalise_client_name(client_value):
+    """
+    Normalise a client label to its family name.
+    Examples: 'Geth/v1.15.0' -> 'Geth', 'Lighthouse:4.6.0' -> 'Lighthouse'.
+    """
+    if client_value is None:
+        return 'Unknown'
+
+    client = str(client_value).strip().strip("'\"")
+    if not client or client.lower() in {'nan', 'none', 'unknown'}:
+        return 'Unknown'
+
+    if client.startswith('/') and client.endswith('/') and len(client) > 1:
+        client = client.strip('/')
+
+    for separator in ('|', '/', ':'):
+        client = client.split(separator, 1)[0].strip()
+
+    if client == 'Satoshi':
+        client = 'Bitcoin Core'
+    elif client == 'LitecoinCore':
+        client = 'Litecoin Core'
+    elif client == 'MagicBean':
+        client = 'Zcash'
+
+    client = client[:1].upper() + client[1:]
+
+    return client or 'Unknown'
+
+
+def record_versions(reachable_nodes, mode):
     """
     Analyses and records the distribution of client or protocol versions used by nodes.
     :param reachable_nodes: dictionary mapping ledgers to nodes info.
@@ -284,23 +314,7 @@ def version(reachable_nodes, mode):
         versions = defaultdict(int)
         for node in reachable_nodes[ledger]:
             if mode == 1:
-                version = node[2]
-                if ledger == 'bitcoin':
-                    expr = re.search(r'Satoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                    if expr:
-                        version = expr.group(0)
-                elif ledger == 'litecoin':
-                    expr = re.search(r'LitecoinCore:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                    if expr:
-                        version = expr.group(0)
-                elif ledger == 'zcash':
-                    expr = re.search(r'MagicBean:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                    if expr:
-                        version = expr.group(0)
-                elif ledger == 'dogecoin':
-                    expr = re.search(r'Shibetoshi:\d{1,2}\.\d{1,2}\.\d{1,2}', version)
-                    if expr:
-                        version = expr.group(0)
+                version = normalise_client_name(node[2])
                 versions[version] += 1
             elif mode == 2:
                 version = node[3]
@@ -432,6 +446,9 @@ def main():
             cluster_organizations(ledger)
         if ledger in without_tor_ledgers:
             create_without_tor_files(ledger)
+
+    if 'Clients' in MODES:
+        record_versions(reachable_nodes, 1)
 
 if __name__ == '__main__':
     main()

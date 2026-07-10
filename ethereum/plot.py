@@ -21,6 +21,8 @@ def geo_plot(plot_type, layer):
         for line in csv_reader:
             entries.append([line[0], int(line[1])])
 
+    entries.sort(key=lambda entry: entry[1], reverse=True)
+
     total_nodes = sum([i[1] for i in entries])
 
     labels, sizes = [], []
