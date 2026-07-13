@@ -1,4 +1,4 @@
-from network_decentralization.metrics.tau_index import compute_tau_index
+from metrics.tau_index import compute_tau_index
 
 
 def compute_nakamoto_coefficient(distribution):

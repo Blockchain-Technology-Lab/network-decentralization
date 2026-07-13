@@ -13,6 +13,7 @@ from metrics.herfindahl_hirschman_index import compute_hhi
 from metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from metrics.entropy import compute_entropy
 from metrics.concentration_ratio import compute_concentration_ratio
+from metrics.total_entities import compute_total_entities
 
 
 def read_csv_data(csv_path):
