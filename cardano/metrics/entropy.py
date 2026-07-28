@@ -1,5 +1,5 @@
 from math import log
-from network_decentralization.metrics.total_entities import compute_total_entities
+from metrics.total_entities import compute_total_entities
 
 
 def compute_entropy(distribution, alpha):

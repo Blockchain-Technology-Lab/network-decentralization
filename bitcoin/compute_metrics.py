@@ -14,6 +14,7 @@ from network_decentralization.metrics.herfindahl_hirschman_index import compute_
 from network_decentralization.metrics.nakamoto_coefficient import compute_nakamoto_coefficient
 from network_decentralization.metrics.entropy import compute_entropy
 from network_decentralization.metrics.concentration_ratio import compute_concentration_ratio
+from network_decentralization.metrics.total_entities import compute_total_entities
 
 
 def read_csv_data(csv_path):
