@@ -54,7 +54,9 @@ def filter_nodes_by_client(nodes):
         on_bad_lines='skip',
         dtype=str,
         keep_default_na=False,
+        quotechar="'",
     )
+
     agents_df = pd.read_csv(
         agentsfile,
         engine='python',
