@@ -31,6 +31,75 @@ def normalise_client_name(client_value):
     return client or 'Unknown'
 
 
+def filter_nodes_by_client(nodes):
+    """
+    Removes nodes running excluded clients.
+    """
+    excluded_clients = hlp.get_excluded_clients()
+
+    if not excluded_clients:
+        return nodes
+
+    output_dir = hlp.get_output_directory()
+    peerfile = output_dir / 'peerstore.csv'
+    agentsfile = output_dir / 'agents.csv'
+
+    if not peerfile.is_file() or not agentsfile.is_file():
+        logging.warning('parse.py: peerstore.csv or agents.csv not found; skipping client exclusion')
+        return nodes
+
+    peer_df = pd.read_csv(
+        peerfile,
+        engine='python',
+        on_bad_lines='skip',
+        dtype=str,
+        keep_default_na=False,
+    )
+    agents_df = pd.read_csv(
+        agentsfile,
+        engine='python',
+        on_bad_lines='skip',
+        dtype=str,
+        keep_default_na=False,
+    )
+
+    required_peer_columns = {'node_id', 'ip:port'}
+    required_agent_columns = {'node_id', 'agent_version'}
+    if not required_peer_columns.issubset(peer_df.columns) or not required_agent_columns.issubset(agents_df.columns):
+        logging.warning('parse.py: peerstore.csv or agents.csv is missing required columns; skipping client exclusion')
+        return nodes
+
+    peer_df = peer_df[['node_id', 'ip:port']].copy()
+    peer_df['node_id'] = peer_df['node_id'].fillna('').astype(str).str.strip()
+    peer_df['ip:port'] = peer_df['ip:port'].fillna('').astype(str).str.strip()
+    peer_df = peer_df[(peer_df['node_id'] != '') & (peer_df['ip:port'] != '')].drop_duplicates('node_id')
+
+    agents_df = agents_df[['node_id', 'agent_version']].copy()
+    agents_df['node_id'] = agents_df['node_id'].fillna('').astype(str).str.strip()
+    agents_df['agent_version'] = agents_df['agent_version'].fillna('').astype(str).str.strip()
+    agents_df = agents_df[agents_df['node_id'] != ''].drop_duplicates('node_id')
+    agents_df['client'] = agents_df['agent_version'].map(normalise_client_name)
+
+    excluded_node_ids = set(agents_df[agents_df['client'].isin(excluded_clients)]['node_id'])
+    excluded_endpoints = {
+        row['ip:port']
+        for _, row in peer_df.iterrows()
+        if row['node_id'] in excluded_node_ids
+    }
+
+    filtered_nodes = {
+        node
+        for node in nodes
+        if f'{node[0]}:{node[1]}' not in excluded_endpoints
+    }
+
+    logging.info(
+        f"parse.py: Removed {len(nodes) - len(filtered_nodes)} nodes running excluded clients."
+    )
+
+    return filtered_nodes
+
+
 def group_nodes(layer, nodes, mode):
     """
     Groups nodes by geolocation information.
@@ -252,6 +321,7 @@ def main():
     for layer in LAYERS:
         logging.info(f'parse.py: Getting {layer} nodes')
         nodes = hlp.get_nodes(layer)
+        nodes = filter_nodes_by_client(nodes)
         for mode in MODES:
             analyse_distribution(nodes, layer, mode)
         if 'Organizations' in MODES:

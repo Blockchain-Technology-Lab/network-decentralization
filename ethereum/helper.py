@@ -37,6 +37,25 @@ def get_mode():
     return get_config_data()['mode']
 
 
+def get_excluded_clients():
+    """
+    Returns the set of client families to exclude from analyses.
+    """
+    path = pathlib.Path(__file__).resolve().parent / "excluded_clients.txt"
+
+    if not path.is_file():
+        return set()
+
+    with open(path) as f:
+        excluded_clients = {
+            line.strip()
+            for line in f
+            if line.strip() and not line.startswith("#")
+        }
+
+    return excluded_clients
+
+
 def get_output_directory():
     """
     Require the `OUTPUT_DIRECTORY` env var set by the caller
