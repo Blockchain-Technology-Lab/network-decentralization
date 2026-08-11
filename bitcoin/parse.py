@@ -341,6 +341,29 @@ def record_versions(reachable_nodes, mode):
             versions_df.to_csv(f'./output/{name.lower()}_{ledger}.csv', index_label = name)
 
 
+def filter_nodes_by_client(reachable_nodes):
+    """
+    Removes nodes running excluded clients.
+    """
+    excluded_clients = hlp.get_excluded_clients()
+
+    if not excluded_clients:
+        return reachable_nodes
+
+    filtered_nodes = [
+        node
+        for node in reachable_nodes
+        if normalise_client_name(node[2]) not in excluded_clients
+    ]
+
+    logging.info(
+        f"Removed {len(reachable_nodes) - len(filtered_nodes)} nodes "
+        f"running excluded clients."
+    )
+
+    return filtered_nodes
+
+
 def redistribute_tor_nodes(mode_lower, ledger, df, mode):
     """
     Redistributes Tor node count proportionally across non-Tor rows.
@@ -440,6 +463,7 @@ def main():
     for ledger in LEDGERS:
         logging.info(f'parse.py: Getting {ledger} reachable nodes')
         reachable_nodes[ledger] = hlp.get_reachable_nodes(ledger)
+        reachable_nodes[ledger] = filter_nodes_by_client(reachable_nodes[ledger])
         for mode in MODES:
             geography(reachable_nodes, ledger, mode)
         if 'Organizations' in MODES:
