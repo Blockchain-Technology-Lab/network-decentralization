@@ -144,6 +144,23 @@ def get_without_tor_ledgers():
     return list(dict.fromkeys(ledgers)) or None
 
 
+def get_excluded_clients():
+    """
+    Returns the set of client families to exclude from analyses.
+    """
+    path = ROOT_DIR / "excluded_clients.txt"
+
+    if not path.is_file():
+        return set()
+
+    with open(path) as f:
+        return {
+            line.strip()
+            for line in f
+            if line.strip() and not line.startswith("#")
+        }
+
+
 def get_output_directory(ledger=None, dead=False):
     """
     Reads the config file and retrieves the output directory
