@@ -135,10 +135,12 @@ def group_nodes(layer, nodes, mode):
                      asn = "AS" + ip_info['asn']['asn']
                      groups[f'{asn}'].append(ip_addr) # The API used to geolocate IP addresses has been changed, so the fields no longer have the same name.
             elif mode == 'Organizations':
-                 try:
-                     groups[f"{ip_info['org']}"].append(ip_addr)
-                 except KeyError:
-                     groups[ip_info['asn']['org']].append(ip_addr)
+                 organization = ip_info.get('org')
+                 if not organization and isinstance(ip_info.get('asn'), dict):
+                     organization = ip_info['asn'].get('org')
+                 if not organization and isinstance(ip_info.get('as'), str):
+                     organization = ip_info['as'].partition(' ')[2]
+                 groups[organization or 'Unknown'].append(ip_addr)
         elif ip_addr.endswith('onion'):
             groups['Tor'].append(ip_addr)
         else:
